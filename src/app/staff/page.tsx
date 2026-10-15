@@ -31,6 +31,9 @@ import {
   type QueueStatus,
 } from "@/lib/queue";
 import { isDemo, supabase } from "@/lib/supabase";
+const callTimeFormat = new Intl.DateTimeFormat("id-ID", {
+  timeZone: "Asia/Jakarta", hour: "2-digit", minute: "2-digit", hourCycle: "h23",
+});
 export default function StaffPage() {
   const auth = useStaff();
   const queue = useQueue(true, auth.allowed);
@@ -266,7 +269,7 @@ export default function StaffPage() {
                       key={entry.id}
                       className={`border-t border-slate-100 ${entry.status === "called" ? "bg-blue-50/40" : ""}`}
                     >
-                      <TableCell className="font-mono text-lg font-semibold tracking-normal tabular-nums">
+                      <TableCell className="whitespace-nowrap font-mono text-lg font-semibold tracking-normal tabular-nums">
                         {entry.queue_number}
                       </TableCell>
                       <TableCell className="min-w-[140px] font-semibold">
@@ -297,6 +300,11 @@ export default function StaffPage() {
                         >
                           {entry.status === "called" ? "Dipanggil" : "Menunggu"}
                         </span>
+                        {entry.status === "called" && entry.called_at && (
+                          <p className="mt-1 whitespace-nowrap font-mono text-xs tabular-nums text-slate-500">
+                            {callTimeFormat.format(new Date(entry.called_at))} WIB
+                          </p>
+                        )}
                       </TableCell>
                       <TableCell>
                         <div className="flex gap-2">

@@ -68,6 +68,18 @@ export function canTransition(from: QueueStatus, to: QueueStatus) {
     (from === "called" && ["seated", "no-show"].includes(to))
   );
 }
+// A new call must not hide earlier calls that staff have not resolved.
+export function displayQueues<T extends BoardEntry>(rows: T[], day = serviceDate()) {
+  const active = activeQueue(rows, day);
+  const called = active.filter((r) => r.status === "called").sort(
+    (a, b) => (b.called_at ?? "").localeCompare(a.called_at ?? "") || a.id.localeCompare(b.id),
+  );
+  return {
+    current: called[0],
+    previousCalls: called.slice(1),
+    waiting: active.filter((r) => r.status === "waiting"),
+  };
+}
 export function elapsed(iso: string, now: number) {
   return Math.max(0, Math.floor((now - Date.parse(iso)) / 60000));
 }

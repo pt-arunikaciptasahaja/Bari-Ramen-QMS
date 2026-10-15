@@ -5,7 +5,7 @@ import { BellRing, Maximize, Volume2 } from "lucide-react";
 import { Brand } from "@/components/brand";
 import { DemoNotice } from "@/components/demo-notice";
 import { useQueue } from "@/hooks/use-queue";
-import { activeQueue } from "@/lib/queue";
+import { displayQueues } from "@/lib/queue";
 export default function TVPage() {
   const { rows, loading, error, connection } = useQueue();
   const [origin, setOrigin] = useState("");
@@ -83,12 +83,8 @@ export default function TVPage() {
     }
     seen.current = next;
   }, [rows, loading, error]);
-  const active = activeQueue(rows);
-  const called = active
-    .filter((r) => r.status === "called")
-    .sort((a, b) => (b.called_at ?? "").localeCompare(a.called_at ?? ""));
-  const current = called[0];
-  const waiting = active.filter((r) => r.status === "waiting").slice(0, 8);
+  const { current, previousCalls, waiting: allWaiting } = displayQueues(rows);
+  const waiting = allWaiting.slice(0, 8);
   return (
     <div className="flex min-h-screen flex-col bg-[#101010] text-white">
       <DemoNotice />
@@ -123,11 +119,11 @@ export default function TVPage() {
             className={`flex min-h-[430px] flex-1 flex-col items-center justify-center rounded-xl border border-white/10 bg-[#181818] p-8 text-center ${flash ? "call-flash" : ""}`}
           >
             <p className="eyebrow flex items-center gap-3 text-neutral-400">
-              <BellRing size={19} /> SEDANG DIPANGGIL
+              <BellRing size={19} /> PANGGILAN TERBARU
             </p>
             <h1
               aria-live="polite"
-              className="my-5 font-mono text-[clamp(2.5rem,10vw,9rem)] font-semibold leading-tight tracking-normal tabular-nums text-white"
+              className="my-5 whitespace-nowrap font-mono text-[clamp(2.5rem,10vw,9rem)] font-semibold leading-tight tracking-normal tabular-nums text-white"
             >
               {loading ? "…" : (current?.queue_number ?? "—")}
             </h1>
@@ -136,16 +132,21 @@ export default function TVPage() {
                 ? `Untuk ${current.pax} orang · Silakan menuju kasir`
                 : "Silakan ambil nomor antrean Anda"}
             </p>
+            {previousCalls.length > 0 && (
+              <section aria-labelledby="previous-calls-title" className="mt-8 w-full border-t border-white/10 pt-5">
+                <h2 id="previous-calls-title" className="text-sm font-semibold text-slate-300">Masih dipanggil</h2>
+                <p className="mt-1 text-xs text-slate-400">Silakan menuju kasir. Nomor tetap aktif sampai diselesaikan staf.</p>
+                <ul aria-live="polite" className="mt-4 flex flex-wrap justify-center gap-3">
+                  {previousCalls.map((entry) => (
+                    <li key={entry.id} className="min-w-36 rounded-lg bg-white/5 px-5 py-3">
+                      <p className="whitespace-nowrap font-mono text-3xl font-semibold tabular-nums">{entry.queue_number}</p>
+                      <p className="mt-1 text-sm text-slate-300"><span className="font-mono tabular-nums">{entry.pax}</span> orang</p>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            )}
           </div>
-          {called.length > 1 && (
-            <p className="text-sm text-slate-300">
-              Masih dipanggil:{" "}
-              {called
-                .slice(1)
-                .map((r) => r.queue_number)
-                .join(" · ")}
-            </p>
-          )}
           <div className="flex flex-wrap items-center justify-between gap-3 text-sm text-slate-400">
             <span>
               A · 1–2 orang &nbsp; B · 3–4 orang &nbsp; C · 5–12 orang
@@ -171,7 +172,7 @@ export default function TVPage() {
           <div className="mb-5 flex items-center justify-between">
             <h2 className="eyebrow text-slate-300">SELANJUTNYA</h2>
             <span className="rounded-md bg-white/5 px-2 py-1 text-xs text-slate-400">
-              {active.filter((r) => r.status === "waiting").length} menunggu
+              {allWaiting.length} menunggu
             </span>
           </div>
           <div className="flex-1">

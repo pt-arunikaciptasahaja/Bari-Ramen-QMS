@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {
   activeQueue,
+  displayQueues,
   aheadCount,
   canTransition,
   groupFor,
@@ -73,4 +74,18 @@ test("status machine prevents duplicate calls and reactivating terminal tickets"
   assert.equal(canTransition("called", "called"), false);
   assert.equal(canTransition("seated", "waiting"), false);
   assert.equal(canTransition("no-show", "called"), false);
+});
+test("a new call preserves earlier unresolved calls and other waiting groups", () => {
+  const first = { ...row(1, "C", "called"), called_at: "2026-10-15T08:23:00Z" };
+  const second = { ...row(2, "A", "called"), called_at: "2026-10-15T08:26:00Z" };
+  const waiting = row(3, "B");
+  const board = displayQueues([first, second, waiting], "2026-10-15");
+  assert.equal(board.current?.id, second.id);
+  assert.deepEqual(board.previousCalls.map((r) => r.id), [first.id]);
+  assert.deepEqual(board.waiting.map((r) => r.id), [waiting.id]);
+  // Only staff resolving a ticket removes it from the called display.
+  const resolved = displayQueues([{ ...first, status: "seated" as const }, second, waiting], "2026-10-15");
+  assert.equal(resolved.previousCalls.length, 0);
+  assert.equal(resolved.current?.id, second.id);
+  assert.equal(first.status, "called");
 });

@@ -109,6 +109,15 @@ test("PostgreSQL migration, authorization, numbering, retries and transitions", 
         );
       },
     );
+    await t.test("calling a second row does not change the first call or another waiting row", async () => {
+      const before = await db.query<{ called_at: string }>("select called_at from queue_entries where id=$1", [first.id]);
+      await db.query("select public.transition_queue($1,'called')", [second.id]);
+      const unchanged = await db.query<{ status: string; called_at: string }>("select status,called_at from queue_entries where id=$1", [first.id]);
+      assert.equal(unchanged.rows[0].status, "called");
+      assert.equal(String(unchanged.rows[0].called_at), String(before.rows[0].called_at));
+      const waiting = await db.query<{ status: string }>("select status from queue_entries where id=$1", [big.id]);
+      assert.equal(waiting.rows[0].status, "waiting");
+    });
     await db.query("select public.transition_queue($1,'seated')", [first.id]);
     await asUser(guest);
     const own = await enqueue("Guest", 2);
