@@ -25,6 +25,18 @@ test("PostgreSQL migration, authorization, numbering, retries and transitions", 
         "utf8",
       ),
     );
+    // Reproduce Supabase's direct default grants, then apply the hardening.
+    await db.exec("grant execute on all functions in schema public to anon, authenticated");
+    await db.exec(await readFile(new URL(
+      "../supabase/migrations/20261015070622_restrict_queue_rpc_permissions.sql",
+      import.meta.url,
+    ), "utf8"));
+    await t.test("trigger helper cannot be called directly by clients", async () => {
+      const result = await db.query<{ allowed: boolean }>(
+        "select has_function_privilege('authenticated', 'public.sync_queue_board()', 'execute') as allowed",
+      );
+      assert.equal(result.rows[0].allowed, false);
+    });
     await db.query("insert into auth.users(id) values ($1),($2),($3)", [
       staff,
       guest,

@@ -16,6 +16,7 @@ import {
 import { Brand } from "@/components/brand";
 import { DemoNotice } from "@/components/demo-notice";
 import { QueueForm } from "@/components/queue-form";
+import { QueueHistory } from "@/components/queue-history";
 import { StaffLogin } from "@/components/staff-login";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -354,6 +355,7 @@ export default function StaffPage() {
                 kelompok jumlah orang. Selesai = meja sudah diberikan.
               </div>
             </Card>
+            <QueueHistory todayRows={queue.rows} todayLoading={queue.loading} todayError={queue.error} />
           </>
         )}
       </main>

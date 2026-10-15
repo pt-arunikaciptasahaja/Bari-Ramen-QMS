@@ -1,5 +1,16 @@
 # Bari Ramen QMS
 
+## Staff history and daily recap
+
+The staff dashboard keeps active queues separate from completed and skipped tickets.
+Choose a registration date (Asia/Jakarta), filter by status, and search by name or number.
+CSV export follows the selected date, status, and search, including all matching rows across pages.
+
+Daily metrics include registrations, parties seated, people seated, skipped parties, QR/walk-in sources,
+and average registration-to-call time for tickets with a valid call timestamp. These are not sales,
+bowls sold, table occupancy, or dining-duration metrics. Existing rows are preserved; no completion
+timestamp is inferred. Private history remains restricted to staff through Supabase RLS.
+
 ## Summary
 
 MVP antrean tamu walk-in dan QR dalam satu daftar. Ini **antrean mendapatkan meja**, bukan kitchen display, POS, payment integration, atau reservasi meja.
