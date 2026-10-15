@@ -89,20 +89,20 @@ export default function TrackerPage({
   return (
     <>
       <DemoNotice />
-      <header className="mx-auto max-w-2xl px-6 py-7">
+      <header className="mx-auto w-full max-w-md px-4 py-4">
         <Brand />
       </header>
-      <main className="mx-auto max-w-lg px-5 pb-12 pt-5">
+      <main className="mx-auto w-full max-w-md px-4 pb-6 pt-2">
         {loading ? (
-          <p role="status" className="py-16 text-center text-stone-500">
+          <p role="status" className="py-16 text-center text-slate-500">
             Memuat nomor antrean…
           </p>
         ) : !entry ? (
-          <Card className="p-8 text-center">
+          <Card className="p-5 text-center">
             <h1 className="text-xl font-bold">
               {error ? "Antrean belum dapat dimuat" : "Antrean tidak ditemukan"}
             </h1>
-            <p className="my-4 text-sm text-stone-500">
+            <p className="my-4 text-sm text-slate-500">
               {error ||
                 "Buka tautan ini dari browser yang digunakan saat mengambil antrean."}
             </p>
@@ -115,12 +115,12 @@ export default function TrackerPage({
           </Card>
         ) : (
           <>
-            <div className="mb-6 text-center">
-              <h1 className="text-2xl font-semibold tracking-tight">
+            <div className="mb-4">
+              <h1 className="text-xl font-semibold">
                 {called ? "Silakan ke kasir" : "Antrean Anda"}
               </h1>
-              <p className="mt-2 text-sm font-medium">{entry.customer_name}</p>
-              <p className="mt-3 text-sm text-stone-500">
+              <p className="mt-1 text-sm font-medium">{entry.customer_name}</p>
+              <p className="mt-2 text-xs leading-5 text-slate-500">
                 {called
                   ? "Silakan ke kasir dan tunjukkan nomor berikut."
                   : "Simpan halaman ini untuk memantau giliran Anda."}
@@ -128,15 +128,17 @@ export default function TrackerPage({
             </div>
             <Card className="overflow-hidden">
               <div
-                className={`px-7 py-9 text-center ${called ? "bg-emerald-50" : "bg-neutral-50"}`}
+                className={`px-4 py-5 text-center ${called ? "bg-amber-50" : "bg-slate-100/50"}`}
               >
-                <p className="eyebrow text-stone-500">NOMOR ANTREAN ANDA</p>
-                <p className="my-5 text-8xl font-extrabold tracking-[-.06em]">
+                <p className="text-xs font-medium text-slate-500">
+                  Nomor antrean
+                </p>
+                <p className="my-3 whitespace-nowrap font-mono text-[clamp(2rem,10vw,3.5rem)] font-semibold leading-tight tracking-normal tabular-nums">
                   {entry.queue_number}
                 </p>
                 <span
                   aria-live="polite"
-                  className={`inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-semibold ${called ? "text-emerald-800" : "text-stone-600"}`}
+                  className={`inline-flex items-center gap-2 rounded-md bg-white px-3 py-1.5 text-xs font-medium ${expired || entry.status === "no-show" ? "text-rose-600" : called ? "text-amber-600" : entry.status === "seated" ? "text-emerald-600" : "text-slate-600"}`}
                 >
                   {called ? (
                     <BellRing size={16} />
@@ -150,34 +152,41 @@ export default function TrackerPage({
                     : statusLabel[entry.status]}
                 </span>
               </div>
-              <div className="border-t border-stone-200 p-6">
+              <div className="p-4">
                 {entry.status === "waiting" && !expired && (
-                  <div className="mb-6 rounded-xl bg-paper p-5 text-center">
-                    <p aria-live="polite" className="text-3xl font-bold">
-                      {board.loading || board.error ? "…" : ahead}
-                    </p>
-                    <p className="mt-1 text-sm text-stone-500">
+                  <div className="mb-4 rounded-lg bg-slate-100/50 px-3 py-3">
+                    <p aria-live="polite" className="text-sm">
+                      <span className="font-mono font-semibold tabular-nums">
+                        {board.loading || board.error ? "…" : ahead}
+                      </span>{" "}
                       antrean di depan Anda
                     </p>
-                    <p className="mt-2 text-xs text-stone-500">
-                      Dalam kelompok {entry.group_code}, sesuai jumlah orang.
+                    <p className="mt-1 text-xs text-slate-500">
+                      Kelompok {entry.group_code}, sesuai jumlah orang.
                     </p>
                   </div>
                 )}
                 <div className="flex items-center justify-between text-sm">
-                  <span className="flex items-center gap-2 text-stone-500">
+                  <span className="flex items-center gap-2 text-slate-500">
                     <Users size={17} />
                     Jumlah Orang
                   </span>
-                  <span className="font-semibold">{entry.pax} orang</span>
+                  <span>
+                    <span className="font-mono font-medium tabular-nums">
+                      {entry.pax}
+                    </span>{" "}
+                    orang
+                  </span>
                 </div>
-                <div className="mt-4 flex justify-between text-sm">
-                  <span className="text-stone-500">Tanggal antrean</span>
-                  <span>{entry.service_date}</span>
+                <div className="mt-3 flex justify-between text-sm">
+                  <span className="text-slate-500">Tanggal antrean</span>
+                  <span className="font-mono text-xs tabular-nums">
+                    {entry.service_date}
+                  </span>
                 </div>
               </div>
             </Card>
-            <p className="mt-6 text-center text-xs leading-6 text-stone-500">
+            <p className="mt-4 text-xs leading-5 text-slate-500">
               {expired
                 ? "Nomor ini hanya berlaku pada tanggal pendaftaran."
                 : entry.status === "no-show"
@@ -186,7 +195,7 @@ export default function TrackerPage({
                     ? "Meja sudah diberikan."
                     : "Tetap di sekitar restoran. Urutan pemanggilan menyesuaikan kapasitas meja yang tersedia."}
             </p>
-            <p className="mt-4 flex items-center justify-center gap-2 text-xs text-stone-500">
+            <p className="mt-4 flex items-center justify-center gap-2 text-xs text-slate-500">
               <span className="h-1.5 w-1.5 rounded-full bg-emerald-600" />
               {board.connection} · Halaman diperbarui otomatis
             </p>
@@ -199,7 +208,7 @@ export default function TrackerPage({
         )}
         <Link
           href="/"
-          className="mt-8 flex items-center justify-center gap-2 text-sm text-stone-500"
+          className="mt-5 flex min-h-11 items-center justify-center gap-2 text-sm text-slate-500 transition-colors duration-75 ease-in-out hover:text-slate-900"
         >
           <ArrowLeft size={15} />
           Kembali ke beranda

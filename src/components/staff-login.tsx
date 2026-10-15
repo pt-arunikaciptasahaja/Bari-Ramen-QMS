@@ -35,7 +35,7 @@ export function StaffLogin() {
     <Card className="mx-auto max-w-md p-8">
       <LockKeyhole className="mb-5 text-brand" />
       <h1 className="text-2xl font-bold">Masuk sebagai staf</h1>
-      <p className="mb-6 mt-2 text-sm text-stone-500">
+      <p className="mb-6 mt-2 text-sm text-slate-500">
         Gunakan akun yang diberikan pengelola Bari Ramen.
       </p>
       <form onSubmit={login} className="space-y-4">

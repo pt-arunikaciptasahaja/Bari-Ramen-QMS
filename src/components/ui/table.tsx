@@ -6,7 +6,10 @@ export function Table({
 }: React.TableHTMLAttributes<HTMLTableElement>) {
   return (
     <div className="w-full overflow-x-auto">
-      <table className={cn("w-full text-left text-sm", className)} {...props} />
+      <table
+        className={cn("w-full text-left text-sm tabular-nums", className)}
+        {...props}
+      />
     </div>
   );
 }
@@ -15,12 +18,12 @@ export function TableHead(props: React.ThHTMLAttributes<HTMLTableCellElement>) {
     <th
       {...props}
       className={cn(
-        "px-6 py-4 text-xs font-medium text-stone-500",
+        "px-4 py-3 text-xs font-medium text-slate-500",
         props.className,
       )}
     />
   );
 }
 export function TableCell(props: React.TdHTMLAttributes<HTMLTableCellElement>) {
-  return <td {...props} className={cn("px-6 py-5", props.className)} />;
+  return <td {...props} className={cn("px-4 py-3", props.className)} />;
 }

@@ -1,6 +1,6 @@
 "use client";
 import { FormEvent, useRef, useState } from "react";
-import { ArrowRight, Loader2, Plus, Users } from "lucide-react";
+import { ArrowRight, ChevronDown, Loader2, Plus, Users } from "lucide-react";
 import { enqueue } from "@/lib/api";
 import { type QueueEntry } from "@/lib/queue";
 import { Button } from "./ui/button";
@@ -54,8 +54,8 @@ export function QueueForm({
       onSubmit={submit}
       className={
         staff
-          ? "grid gap-4 md:grid-cols-[1fr_180px_auto] md:items-end"
-          : "space-y-5"
+          ? "grid gap-3 md:grid-cols-[1fr_180px_auto] md:items-end"
+          : "space-y-4"
       }
     >
       <div>
@@ -84,10 +84,13 @@ export function QueueForm({
         <label htmlFor="guest-pax" className="mb-2 block text-sm font-semibold">
           Jumlah Orang
         </label>
-        <div className="relative">
+        <div
+          className={`field flex items-center gap-3 ${busy ? "opacity-60" : ""}`}
+        >
           <Users
-            className="pointer-events-none absolute left-4 top-4 text-stone-400"
-            size={19}
+            aria-hidden="true"
+            className="pointer-events-none shrink-0 text-slate-400"
+            size={18}
           />
           <select
             id="guest-pax"
@@ -97,20 +100,28 @@ export function QueueForm({
               changed();
               setPax(e.target.value);
             }}
-            className="field pl-11"
+            className="min-w-0 flex-1 self-stretch appearance-none bg-transparent p-0 font-mono tabular-nums outline-none"
           >
             {Array.from({ length: 12 }, (_, i) => (
               <option key={i} value={i + 1}>
-                {i + 1} orang
+                {i + 1}
               </option>
             ))}
           </select>
+          <span aria-hidden="true" className="text-sm text-slate-500">
+            orang
+          </span>
+          <ChevronDown
+            aria-hidden="true"
+            size={16}
+            className="pointer-events-none shrink-0 text-slate-500"
+          />
         </div>
       </div>
       <Button
         type="submit"
         disabled={busy || !name.trim()}
-        className={staff ? "h-[54px]" : "h-14 w-full text-base"}
+        className={staff ? "h-12" : "h-12 w-full text-base"}
       >
         {busy ? (
           <Loader2 className="animate-spin" size={19} />

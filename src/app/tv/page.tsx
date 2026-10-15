@@ -95,8 +95,10 @@ export default function TVPage() {
       <header className="flex flex-wrap items-center justify-between gap-5 border-b border-white/10 px-7 py-6 lg:px-12">
         <Brand dark />
         <div className="flex items-center gap-6">
-          <span className="text-sm text-stone-400">{connection}</span>
-          <span className="text-2xl font-semibold tabular-nums">{clock}</span>
+          <span className="text-sm text-slate-400">{connection}</span>
+          <span className="font-mono text-2xl font-semibold tabular-nums">
+            {clock}
+          </span>
           <button
             onClick={() => {
               if (!document.fullscreenElement)
@@ -108,7 +110,7 @@ export default function TVPage() {
               else void document.exitFullscreen();
             }}
             aria-label="Layar penuh"
-            className="p-3 text-stone-400"
+            className="p-3 text-slate-400"
           >
             <Maximize size={21} />
           </button>
@@ -125,18 +127,18 @@ export default function TVPage() {
             </p>
             <h1
               aria-live="polite"
-              className="my-5 text-[clamp(5rem,14vw,12rem)] font-extrabold leading-none tracking-[-.05em] text-white"
+              className="my-5 font-mono text-[clamp(2.5rem,10vw,9rem)] font-semibold leading-tight tracking-normal tabular-nums text-white"
             >
               {loading ? "…" : (current?.queue_number ?? "—")}
             </h1>
-            <p className="text-xl text-stone-300">
+            <p className="text-xl text-slate-300">
               {current
                 ? `Untuk ${current.pax} orang · Silakan menuju kasir`
                 : "Silakan ambil nomor antrean Anda"}
             </p>
           </div>
           {called.length > 1 && (
-            <p className="text-sm text-stone-300">
+            <p className="text-sm text-slate-300">
               Masih dipanggil:{" "}
               {called
                 .slice(1)
@@ -144,7 +146,7 @@ export default function TVPage() {
                 .join(" · ")}
             </p>
           )}
-          <div className="flex flex-wrap items-center justify-between gap-3 text-sm text-stone-400">
+          <div className="flex flex-wrap items-center justify-between gap-3 text-sm text-slate-400">
             <span>
               A · 1–2 orang &nbsp; B · 3–4 orang &nbsp; C · 5–12 orang
             </span>
@@ -167,8 +169,8 @@ export default function TVPage() {
         </section>
         <aside className="flex flex-col rounded-xl border border-white/10 bg-[#181818] p-6">
           <div className="mb-5 flex items-center justify-between">
-            <h2 className="eyebrow text-stone-300">SELANJUTNYA</h2>
-            <span className="rounded-md bg-white/5 px-2 py-1 text-xs text-stone-400">
+            <h2 className="eyebrow text-slate-300">SELANJUTNYA</h2>
+            <span className="rounded-md bg-white/5 px-2 py-1 text-xs text-slate-400">
               {active.filter((r) => r.status === "waiting").length} menunggu
             </span>
           </div>
@@ -179,19 +181,19 @@ export default function TVPage() {
                   key={entry.id}
                   className="flex items-center justify-between border-b border-white/10 py-4"
                 >
-                  <span className="text-xs text-stone-500">
+                  <span className="font-mono text-xs text-slate-500">
                     {String(i + 1).padStart(2, "0")}
                   </span>
-                  <span className="text-3xl font-bold tracking-tight">
+                  <span className="font-mono text-3xl font-semibold tracking-normal tabular-nums">
                     {entry.queue_number}
                   </span>
-                  <span className="text-sm text-stone-400">
+                  <span className="text-sm text-slate-400">
                     {entry.pax} orang
                   </span>
                 </div>
               ))
             ) : (
-              <p className="py-10 text-center text-sm text-stone-400">
+              <p className="py-10 text-center text-sm text-slate-400">
                 {loading ? "Memuat antrean…" : "Belum ada antrean menunggu."}
               </p>
             )}
@@ -215,7 +217,7 @@ export default function TVPage() {
           </div>
         </aside>
       </main>
-      <footer className="px-10 pb-6 text-center text-xs text-stone-500">
+      <footer className="px-10 pb-6 text-center text-xs text-slate-500">
         Urutan dipanggil menyesuaikan kapasitas meja tersedia. Nomor antrean
         berlaku hari ini.
       </footer>

@@ -2,8 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 export const metadata: Metadata = {
   title: "Bari Ramen | Antrean",
-  description:
-    "Pendaftaran dan status antrean meja Bari Ramen.",
+  description: "Pendaftaran dan status antrean meja Bari Ramen.",
   robots: { index: false, follow: false },
 };
 export default function RootLayout({

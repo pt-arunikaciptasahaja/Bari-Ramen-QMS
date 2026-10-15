@@ -105,11 +105,11 @@ export default function StaffPage() {
   return (
     <>
       <DemoNotice />
-      <header className="border-b border-stone-200 bg-white">
+      <header className="border-b border-slate-200 bg-white">
         <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-5 px-5 py-5 sm:px-8">
           <Brand />
           <div className="flex items-center gap-3">
-            <span className="hidden rounded-lg bg-paper px-3 py-2 text-xs text-stone-500 sm:block">
+            <span className="hidden rounded-lg bg-paper px-3 py-2 text-xs text-slate-500 sm:block">
               PENGELOLA ANTREAN
             </span>
             <Button asChild variant="outline">
@@ -156,11 +156,11 @@ export default function StaffPage() {
                 <h1 className="text-3xl font-bold tracking-tight">
                   Antrean Tamu
                 </h1>
-                <p className="mt-2 text-sm text-stone-500">
+                <p className="mt-2 text-sm text-slate-500">
                   Kelola antrean walk-in dan online.
                 </p>
               </div>
-              <div className="flex items-center gap-2 text-xs text-stone-500">
+              <div className="flex items-center gap-2 text-xs text-slate-500">
                 <span
                   className={`h-2 w-2 rounded-full ${queue.connection === "Menghubungkan ulang" ? "bg-amber-500" : "bg-emerald-600"}`}
                 />
@@ -176,8 +176,8 @@ export default function StaffPage() {
                     <s.icon size={23} />
                   </span>
                   <div>
-                    <p className="text-xs text-stone-500">{s.label}</p>
-                    <p className="mt-1 text-3xl font-bold tabular-nums">
+                    <p className="text-xs text-slate-500">{s.label}</p>
+                    <p className="mt-1 font-mono text-2xl font-semibold tabular-nums">
                       {queue.loading ? "…" : s.value}
                     </p>
                   </div>
@@ -215,7 +215,7 @@ export default function StaffPage() {
               </div>
             )}
             <Card className="overflow-hidden">
-              <div className="flex flex-wrap items-center justify-between gap-4 border-b border-stone-200 p-5">
+              <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-200 p-5">
                 <div className="flex flex-wrap gap-1 rounded-xl bg-paper p-1">
                   {[
                     ["all", "Semua"],
@@ -227,7 +227,7 @@ export default function StaffPage() {
                       key={value}
                       onClick={() => setGroup(value)}
                       aria-pressed={group === value}
-                      className={`min-h-10 rounded-lg px-3 text-xs font-semibold ${group === value ? "bg-white text-ink shadow-sm" : "text-stone-500"}`}
+                      className={`min-h-10 rounded-lg px-3 text-xs font-semibold ${group === value ? "bg-white text-ink shadow-sm" : "text-slate-500"}`}
                     >
                       {label}
                     </button>
@@ -236,19 +236,19 @@ export default function StaffPage() {
                 <div className="relative">
                   <Search
                     size={16}
-                    className="absolute left-3 top-3 text-stone-400"
+                    className="absolute left-3 top-3 text-slate-400"
                   />
                   <input
                     aria-label="Cari nama atau nomor"
                     placeholder="Cari nama / nomor"
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
-                    className="h-10 rounded-lg border border-stone-200 pl-9 pr-3 text-sm"
+                    className="h-10 rounded-lg border border-slate-200 pl-9 pr-3 text-sm"
                   />
                 </div>
               </div>
               <Table>
-                <thead className="bg-stone-50">
+                <thead className="bg-slate-50">
                   <tr>
                     <TableHead>Nomor</TableHead>
                     <TableHead>Nama Tamu</TableHead>
@@ -263,26 +263,32 @@ export default function StaffPage() {
                   {filtered.map((entry) => (
                     <tr
                       key={entry.id}
-                      className={`border-t border-stone-100 ${entry.status === "called" ? "bg-blue-50/40" : ""}`}
+                      className={`border-t border-slate-100 ${entry.status === "called" ? "bg-blue-50/40" : ""}`}
                     >
-                      <TableCell className="text-xl font-bold tracking-tight">
+                      <TableCell className="font-mono text-lg font-semibold tracking-normal tabular-nums">
                         {entry.queue_number}
                       </TableCell>
                       <TableCell className="min-w-[140px] font-semibold">
                         {entry.customer_name}
                       </TableCell>
                       <TableCell className="whitespace-nowrap">
-                        {entry.pax} orang
+                        <span className="font-mono tabular-nums">
+                          {entry.pax}
+                        </span>{" "}
+                        orang
                       </TableCell>
                       <TableCell>
                         <span
-                          className={`whitespace-nowrap rounded-md px-2 py-1 text-xs ${entry.source === "online" ? "bg-violet-50 text-violet-800" : "bg-stone-100 text-stone-600"}`}
+                          className="whitespace-nowrap rounded-md bg-slate-100/50 px-2 py-1 text-xs text-slate-600"
                         >
                           {entry.source === "online" ? "QR Online" : "Walk-in"}
                         </span>
                       </TableCell>
-                      <TableCell className="whitespace-nowrap text-stone-500">
-                        {now ? elapsed(entry.created_at, now) : 0} menit
+                      <TableCell className="whitespace-nowrap text-slate-500">
+                        <span className="font-mono tabular-nums">
+                          {now ? elapsed(entry.created_at, now) : 0}
+                        </span>{" "}
+                        menit
                       </TableCell>
                       <TableCell>
                         <span
@@ -328,7 +334,7 @@ export default function StaffPage() {
               </Table>
               {!filtered.length && (
                 <div className="grid place-items-center gap-3 p-14 text-center">
-                  <ListOrdered className="text-stone-300" size={38} />
+                  <ListOrdered className="text-slate-300" size={38} />
                   <p className="font-semibold">
                     {queue.loading
                       ? "Memuat antrean…"
@@ -336,14 +342,14 @@ export default function StaffPage() {
                         ? "Tamu tidak ditemukan"
                         : "Belum ada antrean aktif"}
                   </p>
-                  <p className="text-sm text-stone-500">
+                  <p className="text-sm text-slate-500">
                     {search
                       ? "Coba nama atau nomor lainnya."
                       : "Tamu walk-in dan QR akan muncul di sini."}
                   </p>
                 </div>
               )}
-              <div className="border-t border-stone-100 px-6 py-4 text-xs text-stone-500">
+              <div className="border-t border-slate-100 px-6 py-4 text-xs text-slate-500">
                 {active.length} antrean aktif · Urutan kedatangan dalam setiap
                 kelompok jumlah orang. Selesai = meja sudah diberikan.
               </div>

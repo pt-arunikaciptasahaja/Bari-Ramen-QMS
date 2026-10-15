@@ -17,20 +17,23 @@ export default function Home() {
   return (
     <div className="flex min-h-dvh flex-col bg-white">
       <DemoNotice />
-      <header className="border-b border-stone-200 px-6 py-6">
+      <header className="border-b border-slate-200 px-4 py-4">
         <div className="mx-auto max-w-5xl">
           <Brand />
         </div>
       </header>
-      <main className="mx-auto w-full max-w-md flex-1 px-6 py-12 sm:py-16">
+      <main className="mx-auto w-full max-w-md flex-1 px-4 py-6 sm:py-8">
         <h1 className="text-2xl font-semibold tracking-tight">
           Daftar antrean
         </h1>
-        <p className="mt-2 text-sm leading-6 text-stone-500">
+        <p className="mt-2 text-sm leading-6 text-slate-500">
           Isi nama dan jumlah orang. Nomor antrean akan ditampilkan setelah
           mendaftar.
         </p>
-        <div className="my-7 border-y border-stone-200 py-4" role="status">
+        <div
+          className="my-5 rounded-lg bg-slate-100/50 px-3 py-3"
+          role="status"
+        >
           <p className="text-sm">
             {queue.loading ? (
               "Memuat antrean…"
@@ -38,7 +41,9 @@ export default function Home() {
               "Antrean belum dapat dimuat."
             ) : (
               <>
-                <span className="font-semibold tabular-nums">{waiting}</span>{" "}
+                <span className="font-mono font-semibold tabular-nums">
+                  {waiting}
+                </span>{" "}
                 antrean menunggu
               </>
             )}
@@ -48,12 +53,12 @@ export default function Home() {
           )}
         </div>
         <QueueForm onAdded={(entry) => router.push(`/q/${entry.id}`)} />
-        <p className="mt-5 text-xs leading-5 text-stone-500">
+        <p className="mt-5 text-xs leading-5 text-slate-500">
           Berlaku untuk hari ini. Tetap di sekitar restoran saat menunggu.
         </p>
       </main>
-      <footer className="border-t border-stone-200 px-6 py-5">
-        <div className="mx-auto flex max-w-5xl items-center justify-between text-xs text-stone-500">
+      <footer className="border-t border-slate-200 px-6 py-5">
+        <div className="mx-auto flex max-w-5xl items-center justify-between text-xs text-slate-500">
           <span>Bari Ramen</span>
           <nav className="flex gap-5" aria-label="Halaman operasional">
             <Link href="/staff" className="hover:text-ink">
