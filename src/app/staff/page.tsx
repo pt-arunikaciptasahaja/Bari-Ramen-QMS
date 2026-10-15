@@ -157,7 +157,7 @@ export default function StaffPage() {
                   Antrean Tamu
                 </h1>
                 <p className="mt-2 text-sm text-stone-500">
-                  Satu daftar. Semua tamu. Sambut setiap giliran.
+                  Kelola antrean walk-in dan online.
                 </p>
               </div>
               <div className="flex items-center gap-2 text-xs text-stone-500">

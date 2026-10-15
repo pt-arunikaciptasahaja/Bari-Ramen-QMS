@@ -68,7 +68,7 @@ export function QueueForm({
         <input
           id="guest-name"
           autoComplete="name"
-          placeholder="Nama panggilan Anda"
+          placeholder="Masukkan nama"
           maxLength={60}
           required
           value={name}

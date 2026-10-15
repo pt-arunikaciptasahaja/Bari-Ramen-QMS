@@ -13,7 +13,11 @@ import {
   statusLabel,
   type QueueEntry,
 } from "@/lib/queue";
-export default function TrackerPage({ params }: { params: Promise<{ id: string }> }) {
+export default function TrackerPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
   const { id } = use(params);
   const board = useQueue();
   const [ticket, setTicket] = useState<QueueEntry | null>(null);
@@ -112,16 +116,10 @@ export default function TrackerPage({ params }: { params: Promise<{ id: string }
         ) : (
           <>
             <div className="mb-6 text-center">
-              <p className="eyebrow mb-3 text-brand">
-                {called
-                  ? "GILIRAN ANDA SUDAH TIBA"
-                  : "TEMPAT ANDA DALAM ANTREAN"}
-              </p>
-              <h1 className="text-3xl font-bold tracking-tight">
-                {called
-                  ? "Meja Anda menanti."
-                  : `Terima kasih, ${entry.customer_name}.`}
+              <h1 className="text-2xl font-semibold tracking-tight">
+                {called ? "Silakan ke kasir" : "Antrean Anda"}
               </h1>
+              <p className="mt-2 text-sm font-medium">{entry.customer_name}</p>
               <p className="mt-3 text-sm text-stone-500">
                 {called
                   ? "Silakan ke kasir dan tunjukkan nomor berikut."
@@ -130,7 +128,7 @@ export default function TrackerPage({ params }: { params: Promise<{ id: string }
             </div>
             <Card className="overflow-hidden">
               <div
-                className={`px-7 py-9 text-center ${called ? "bg-[#e9efdf]" : "bg-[#f1eee5]"}`}
+                className={`px-7 py-9 text-center ${called ? "bg-emerald-50" : "bg-neutral-50"}`}
               >
                 <p className="eyebrow text-stone-500">NOMOR ANTREAN ANDA</p>
                 <p className="my-5 text-8xl font-extrabold tracking-[-.06em]">
@@ -152,9 +150,7 @@ export default function TrackerPage({ params }: { params: Promise<{ id: string }
                     : statusLabel[entry.status]}
                 </span>
               </div>
-              <div className="relative border-t border-dashed border-stone-300 p-6">
-                <span className="absolute -left-3 -top-3 h-6 w-6 rounded-full border-r border-stone-200 bg-paper" />
-                <span className="absolute -right-3 -top-3 h-6 w-6 rounded-full border-l border-stone-200 bg-paper" />
+              <div className="border-t border-stone-200 p-6">
                 {entry.status === "waiting" && !expired && (
                   <div className="mb-6 rounded-xl bg-paper p-5 text-center">
                     <p aria-live="polite" className="text-3xl font-bold">
@@ -187,7 +183,7 @@ export default function TrackerPage({ params }: { params: Promise<{ id: string }
                 : entry.status === "no-show"
                   ? "Antrean Anda telah dilewati. Hubungi staf untuk bantuan."
                   : entry.status === "seated"
-                    ? "Selamat menikmati ramen Anda."
+                    ? "Meja sudah diberikan."
                     : "Tetap di sekitar restoran. Urutan pemanggilan menyesuaikan kapasitas meja yang tersedia."}
             </p>
             <p className="mt-4 flex items-center justify-center gap-2 text-xs text-stone-500">

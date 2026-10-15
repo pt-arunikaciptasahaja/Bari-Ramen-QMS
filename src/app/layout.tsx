@@ -3,7 +3,7 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "Bari Ramen | Antrean",
   description:
-    "Satu antrean untuk semua tamu Bari Ramen. Ambil nomor, pantau giliran, nikmati ramen.",
+    "Pendaftaran dan status antrean meja Bari Ramen.",
   robots: { index: false, follow: false },
 };
 export default function RootLayout({

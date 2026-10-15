@@ -90,7 +90,7 @@ export default function TVPage() {
   const current = called[0];
   const waiting = active.filter((r) => r.status === "waiting").slice(0, 8);
   return (
-    <div className="flex min-h-screen flex-col bg-[#171c18] text-white">
+    <div className="flex min-h-screen flex-col bg-[#101010] text-white">
       <DemoNotice />
       <header className="flex flex-wrap items-center justify-between gap-5 border-b border-white/10 px-7 py-6 lg:px-12">
         <Brand dark />
@@ -118,14 +118,14 @@ export default function TVPage() {
         <section className="flex flex-col gap-6">
           <div
             key={flash}
-            className={`flex min-h-[430px] flex-1 flex-col items-center justify-center rounded-3xl border border-white/10 bg-[#252b26] p-8 text-center ${flash ? "call-flash" : ""}`}
+            className={`flex min-h-[430px] flex-1 flex-col items-center justify-center rounded-xl border border-white/10 bg-[#181818] p-8 text-center ${flash ? "call-flash" : ""}`}
           >
-            <p className="eyebrow flex items-center gap-3 text-[#c2ccaa]">
+            <p className="eyebrow flex items-center gap-3 text-neutral-400">
               <BellRing size={19} /> SEDANG DIPANGGIL
             </p>
             <h1
               aria-live="polite"
-              className="my-5 text-[clamp(5rem,14vw,12rem)] font-extrabold leading-none tracking-[-.05em] text-[#e6edcf]"
+              className="my-5 text-[clamp(5rem,14vw,12rem)] font-extrabold leading-none tracking-[-.05em] text-white"
             >
               {loading ? "…" : (current?.queue_number ?? "—")}
             </h1>
@@ -133,9 +133,6 @@ export default function TVPage() {
               {current
                 ? `Untuk ${current.pax} orang · Silakan menuju kasir`
                 : "Silakan ambil nomor antrean Anda"}
-            </p>
-            <p className="mt-4 text-sm text-stone-400">
-              Terima kasih sudah menunggu. Ramen hangat segera menyambut Anda.
             </p>
           </div>
           {called.length > 1 && (
@@ -168,7 +165,7 @@ export default function TVPage() {
             </p>
           )}
         </section>
-        <aside className="flex flex-col rounded-3xl border border-white/10 bg-[#1e241f] p-6">
+        <aside className="flex flex-col rounded-xl border border-white/10 bg-[#181818] p-6">
           <div className="mb-5 flex items-center justify-between">
             <h2 className="eyebrow text-stone-300">SELANJUTNYA</h2>
             <span className="rounded-md bg-white/5 px-2 py-1 text-xs text-stone-400">
@@ -199,20 +196,20 @@ export default function TVPage() {
               </p>
             )}
           </div>
-          <div className="mt-8 flex items-center gap-4 rounded-2xl bg-[#e6edcf] p-4 text-[#252b26]">
+          <div className="mt-8 flex items-center gap-4 rounded-lg bg-white p-4 text-neutral-900">
             {origin && (
               <QRCodeSVG
                 value={origin}
                 size={82}
-                bgColor="#e6edcf"
-                fgColor="#252b26"
+                bgColor="#ffffff"
+                fgColor="#171717"
                 marginSize={1}
               />
             )}
             <div>
-              <h3 className="text-sm font-bold">Belum ambil nomor?</h3>
+              <h3 className="text-sm font-bold">Daftar antrean</h3>
               <p className="mt-1 text-xs leading-5">
-                Pindai QR untuk bergabung dalam antrean.
+                Pindai QR untuk mengambil nomor.
               </p>
             </div>
           </div>
