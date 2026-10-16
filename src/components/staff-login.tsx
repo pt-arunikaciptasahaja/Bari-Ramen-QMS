@@ -41,7 +41,7 @@ export function StaffLogin() {
       <form onSubmit={login} className="space-y-4">
         <div>
           <label htmlFor="email" className="mb-2 block text-sm">
-            Email Staf
+            Email staf
           </label>
           <input
             className="field"
@@ -55,7 +55,7 @@ export function StaffLogin() {
         </div>
         <div>
           <label htmlFor="password" className="mb-2 block text-sm">
-            Kata Sandi
+            Kata sandi
           </label>
           <input
             className="field"

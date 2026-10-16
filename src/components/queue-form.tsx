@@ -61,7 +61,7 @@ export function QueueForm({
           htmlFor="guest-name"
           className="mb-2 block text-sm font-semibold"
         >
-          Nama Tamu
+          Nama tamu
         </label>
         <input
           id="guest-name"
@@ -89,7 +89,7 @@ export function QueueForm({
       </div>
       <div>
         <label htmlFor="guest-pax" className="mb-2 block text-sm font-semibold">
-          Jumlah Orang
+          Jumlah orang
         </label>
         <div
           className={`field flex items-center gap-3 ${busy ? "opacity-60" : ""}`}
@@ -135,11 +135,11 @@ export function QueueForm({
         ) : (
           <Plus size={20} />
         )}
-        {busy ? "Menyimpan…" : "Tambah Walk-in"}
+        {busy ? "Menyimpan…" : "Tambah antrean"}
       </Button>
       <div className="col-span-full flex flex-wrap items-center justify-between gap-2 text-xs text-slate-500">
         <span>Grup tamu: <GroupBadge group={groupFor(Number(pax))} /></span>
-        <span>Pastikan tamu bersedia dihubungi melalui WhatsApp.</span>
+        <span>Minta persetujuan tamu sebelum menghubungi melalui WhatsApp.</span>
       </div>
       {error && (
         <p role="alert" className="text-sm text-red-700 md:col-span-full">

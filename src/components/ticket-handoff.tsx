@@ -32,12 +32,12 @@ export function PickupScreenSetup({rows,onChanged}:{rows:QueueEntry[];onChanged:
   }
   return <section aria-labelledby="pickup-screen-title" className="mb-5 rounded-xl bg-slate-100/70 p-4">
     <div className="flex flex-wrap items-center justify-between gap-3">
-      <div><h2 id="pickup-screen-title" className="text-sm font-semibold">Layar pengambilan tiket</h2><p className="mt-1 text-xs text-slate-500">Buka pada HP atau tablet yang menghadap pelanggan. QR tampil berurutan.</p></div>
+      <div><h2 id="pickup-screen-title" className="text-sm font-semibold">Layar pengambilan tiket</h2><p className="mt-1 text-xs text-slate-500">Hubungkan HP atau tablet yang menghadap tamu. Setiap QR tetap tampil sampai tiket dibuka atau scan dilewati.</p></div>
       <Button variant="outline" disabled={busy} onClick={()=>void prepare()}><QrCode size={16} />{busy ? 'Menyiapkan…' : url ? 'Buat tautan layar baru' : 'Siapkan layar pelanggan'}</Button>
     </div>
     {waiting.length>0 && <div className="mt-3 flex flex-wrap items-center justify-between gap-2 rounded-lg bg-white p-3 text-xs"><p><span className="font-mono tabular-nums">{waiting.length}</span> tiket menunggu scan · Berikutnya <span className="font-mono font-semibold tabular-nums">{waiting[0].queue_number}</span></p><button disabled={busy} onClick={()=>void skipFirst()} className="min-h-10 rounded-md bg-slate-100 px-3 font-medium disabled:opacity-50">Lewati scan {waiting[0].queue_number}</button></div>}
     {url && <div className="mt-3 rounded-lg bg-white p-3">
-      <p className="text-xs text-slate-600">Khusus perangkat layar pelanggan. Berlaku 12 jam, tanpa akses dashboard staf.</p>
+      <p className="text-xs leading-5 text-slate-600">Buka tautan ini hanya pada perangkat layar pelanggan. Berlaku 12 jam dan tidak memberikan akses ke dashboard staf.</p>
       <label htmlFor="pickup-screen-link" className="mt-3 block text-xs font-medium">Tautan layar</label>
       <input id="pickup-screen-link" readOnly value={url} onFocus={e=>e.target.select()} className="mt-1 w-full rounded-md border border-slate-200 px-3 py-2 text-xs" />
       <div className="mt-3 flex flex-wrap gap-2">
@@ -72,7 +72,7 @@ export function TicketAccessTools({entry,onChanged}:{entry:QueueEntry;onChanged:
   }
   function close(){dialog.current?.close();setLink('');}
   return <div className="mt-2 font-sans text-xs font-normal text-slate-500">
-    <p>{entry.ticket_opened_at ? 'Tiket sudah dibuka' : entry.ticket_skipped_at ? 'Scan dilewati' : 'Menunggu scan'}</p>
+    <p>{entry.ticket_opened_at ? 'Sudah dibuka di HP' : entry.ticket_skipped_at ? 'Scan dilewati' : 'Belum dibuka di HP'}</p>
     <div className="mt-1 flex flex-wrap gap-x-3">
       <button disabled={busy} onClick={()=>void showTicket()} className="min-h-9 font-medium underline disabled:opacity-50" aria-label={`QR tiket ${entry.queue_number}`}>QR tiket</button>
       {!entry.ticket_opened_at && !entry.ticket_skipped_at && <button disabled={busy} onClick={()=>void skip()} className="min-h-9 underline disabled:opacity-50" aria-label={`Lewati scan ${entry.queue_number}`}>Lewati scan</button>}

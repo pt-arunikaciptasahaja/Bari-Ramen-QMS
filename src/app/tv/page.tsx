@@ -100,7 +100,7 @@ export default function TVPage() {
       <main className="grid min-h-0 flex-1 grid-cols-1 gap-4 p-4 sm:grid-cols-[minmax(0,1fr)_minmax(230px,34%)] lg:gap-6 lg:p-6">
         <section className="flex min-h-0 min-w-0 flex-col gap-3">
           <div key={flash} className={`flex min-h-0 flex-1 flex-col items-center justify-center rounded-xl border border-white/10 bg-[#181818] p-4 text-center transition-colors duration-75 ${flash ? "call-flash" : ""}`}>
-            <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-widest opacity-70"><BellRing size={17} />Panggilan terbaru</p>
+            <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-widest opacity-70"><BellRing size={17} />Sedang dipanggil</p>
             <h1 aria-live="polite" className={`my-3 whitespace-nowrap font-mono text-[clamp(2rem,9vw,8rem)] font-semibold leading-none tabular-nums ${current ? queueGroups[current.group_code].number : "text-white"}`}>{loading ? "…" : current?.queue_number ?? "-"}</h1>
             {current && <div className="mb-3"><GroupBadge group={current.group_code} pax={current.pax} dark /></div>}
             <p className="text-sm opacity-80 lg:text-lg">{current ? `Untuk ${current.pax} orang. Silakan menuju kasir.` : "Pendaftaran antrean melalui staf di restoran."}</p>
@@ -108,7 +108,7 @@ export default function TVPage() {
           </div>
           {previousCalls.length > 0 && <section aria-labelledby="previous-calls-title" className="shrink-0 rounded-xl bg-white/5 p-3">
             <div className="flex items-center justify-between text-xs text-slate-300">
-              <h2 id="previous-calls-title" className="font-semibold">Masih dipanggil</h2>
+              <h2 id="previous-calls-title" className="font-semibold">Panggilan lainnya</h2>
               {previousPage.pages > 1 && <span className="font-mono tabular-nums">{previousPage.page + 1}/{previousPage.pages}</span>}
             </div>
             <ul className="mt-2 grid grid-cols-2 gap-2">
@@ -145,7 +145,7 @@ export default function TVPage() {
           </div>
         </aside>
       </main>
-      <footer className="shrink-0 px-5 pb-3 text-center text-xs text-slate-400">Timer kuning: 1 menit · Timer merah: 3 menit. Warna grup tetap sama sampai antrean selesai atau dilewati.</footer>
+      <footer className="shrink-0 px-5 pb-3 text-center text-xs text-slate-400">Silakan ke kasir saat nomor Anda dipanggil. Urutan panggilan mengikuti ketersediaan meja untuk setiap grup.</footer>
     </div>
   );
 }

@@ -20,14 +20,16 @@
     "qrcode.react": "^4.2.0",
     "react": "19.3.1",
     "react-dom": "19.3.1",
-    "tailwind-merge": "^3.0.0"
+    "tailwind-merge": "^3.0.0",
+    "web-push": "3.6.7"
   },
   "devDependencies": {
     "@electric-sql/pglite": "^0.5.10",
+    "@tailwindcss/postcss": "4.3.3",
     "@types/node": "^22.0.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
-    "@tailwindcss/postcss": "4.3.3",
+    "@types/web-push": "3.6.4",
     "postcss": "^8.5.0",
     "tailwindcss": "4.3.3",
     "tsx": "^4.20.0",

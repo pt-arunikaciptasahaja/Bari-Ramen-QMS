@@ -45,7 +45,7 @@ export function QueueHistory({ todayRows, todayLoading, todayError }: {
     <section aria-labelledby="history-title" className="mt-10">
       <div className="mb-4 flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h2 id="history-title" className="text-xl font-bold">Riwayat &amp; rekap harian</h2>
+          <h2 id="history-title" className="text-xl font-bold">Riwayat dan rekap harian</h2>
           <p className="mt-1 text-sm text-slate-500">Antrean yang sudah mendapat meja atau dilewati tetap tersimpan.</p>
         </div>
         <div className="flex flex-wrap items-end gap-3">

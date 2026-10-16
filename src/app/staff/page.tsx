@@ -28,7 +28,7 @@ import { Card } from "@/components/ui/card";
 import { Table, TableCell, TableHead } from "@/components/ui/table";
 import { useQueue } from "@/hooks/use-queue";
 import { useStaff } from "@/hooks/use-staff";
-import { changeStatus } from "@/lib/api";
+import { callQueue, changeStatus } from "@/lib/api";
 import {
   activeQueue,
   elapsed,
@@ -54,6 +54,13 @@ export default function StaffPage() {
     const timer = setInterval(() => setNow(Date.now()), 1000);
     return () => clearInterval(timer);
   }, []);
+  async function retryNotification(entry: QueueEntry) {
+    if(lock.current || isDemo)return;
+    lock.current=true;setPending(entry.id);setActionError('');
+    try { await callQueue(entry.id,true); setMessage(`Pengiriman notifikasi ${entry.queue_number} diproses. Tidak ada panggilan baru.`); await queue.refresh(); }
+    catch(e) {setActionError(e instanceof Error ? e.message : 'Notifikasi belum dapat diproses. Coba lagi.');}
+    finally {lock.current=false;setPending(null);}
+  }
   function openWhatsApp(entry: QueueEntry) {
     if (pending || queue.loading || queue.error) return;
     const latest = queue.rows.find((row) => row.id === entry.id);
@@ -129,12 +136,12 @@ export default function StaffPage() {
           <Brand />
           <div className="flex items-center gap-3">
             <span className="hidden rounded-lg bg-paper px-3 py-2 text-xs text-slate-500 sm:block">
-              PENGELOLA ANTREAN
+              DASHBOARD STAF
             </span>
             <Button asChild variant="outline">
               <Link href="/tv" target="_blank" rel="noreferrer">
                 <ExternalLink size={16} />
-                Layar TV
+                Layar antrean
               </Link>
             </Button>
             {auth.allowed && !isDemo && (
@@ -173,10 +180,10 @@ export default function StaffPage() {
               <div>
                 <p className="eyebrow mb-2 text-brand">OPERASIONAL HARI INI</p>
                 <h1 className="text-3xl font-bold tracking-tight">
-                  Antrean Tamu
+                  Antrean tamu
                 </h1>
                 <p className="mt-2 text-sm text-slate-500">
-                  Kelola antrean tamu yang mendaftar di restoran.
+                  Daftarkan tamu, panggil giliran, dan konfirmasi pemberian meja.
                 </p>
               </div>
               <div className="flex items-center gap-2 text-xs text-slate-500">
@@ -205,8 +212,7 @@ export default function StaffPage() {
             </div>
             <Card className="mb-7 p-5 sm:p-6">
               <h2 className="mb-5 flex items-center gap-2 text-base font-bold">
-                <Users size={18} className="text-brand" /> Tambahkan tamu
-                walk-in
+                <Users size={18} className="text-brand" /> Daftarkan tamu
               </h2>
               <QueueForm
                 onAdded={(entry) => {
@@ -320,6 +326,10 @@ export default function StaffPage() {
                             {callTimeFormat.format(new Date(entry.called_at))} WIB
                           </p>
                         )}
+                        {entry.status === 'called' && !isDemo && <div className="mt-2 text-[11px] leading-5 text-slate-500">
+                          <p>{entry.push_status==='accepted'?'Notifikasi diajukan ke perangkat':entry.push_status==='pending'?'Mengirim notifikasi…':entry.push_status==='failed'?'Notifikasi belum berhasil': 'Notifikasi tamu belum aktif'}</p>
+                          {entry.push_status && entry.push_status!=='accepted' && <button disabled={pending!==null} onClick={()=>void retryNotification(entry)} className="min-h-9 underline disabled:opacity-50">Coba kirim lagi</button>}
+                        </div>}
                       </TableCell>
                       <TableCell>
                         <div className="flex gap-2">
@@ -375,7 +385,7 @@ export default function StaffPage() {
               )}
               <div className="border-t border-slate-100 px-6 py-4 text-xs text-slate-500">
                 {active.length} antrean aktif · Urutan kedatangan dalam setiap
-                kelompok jumlah orang. Selesai = meja sudah diberikan.
+                kelompok jumlah orang. Pilih Selesai setelah meja diberikan. Notifikasi HP hanya dikirim kepada tamu yang sudah mengaktifkannya.
               </div>
             </Card>
             <QueueHistory todayRows={queue.rows} todayLoading={queue.loading} todayError={queue.error} />

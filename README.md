@@ -48,7 +48,19 @@ Queue groups are A (1-2 people), B (3-5), and C (6-12). Numbering follows the Ja
 4. Guests without phones remain in the table queue. Staff select **Lewati scan** to let the next QR appear, without skipping the table queue. **QR tiket** can reopen or copy a specific ticket link.
 5. The customer link is retained locally for **Buka tiket saya** on the home page and expires at the Jakarta service-day boundary. Anyone holding the link can view that ticket only; it never exposes names/phones or permits seating/cancellation. No account verification is implied.
 
-The display polls every two seconds and hides the QR on connection errors. The tracker reconciles private details every 15 seconds and uses the anonymous public board for live status. Customer Web Push, background sound, and automatic WhatsApp are not part of this release. Keep the browser open to see changes.
+The display polls every two seconds and hides the QR on connection errors. The tracker reconciles private details every 15 seconds and uses the anonymous public board for live status. Web Push is available after explicit opt-in; automatic WhatsApp is not included.
+
+### Web Push notifications
+
+The ticket page has an explicit **Aktifkan notifikasi** button. Permission is requested only after a tap, never on page load. iOS/iPadOS 16.4+ requires adding the ticket to the Home Screen and opening it there. The manifest omits `start_url` so installation uses the current ticket document URL and fragment. Verify this on target iPhones, since installation behavior and storage isolation vary by OS version.
+
+Set `NEXT_PUBLIC_VAPID_PUBLIC_KEY` and server-only `VAPID_PRIVATE_KEY` in the deployment environment before building. Generate keys locally with a trusted Web Push library. Never commit private keys, subscriptions, or ticket tokens. No Supabase service-role key is required.
+
+Subscriptions are stored in `qms_private`, scoped to a private ticket capability, limited to three devices, and expire at the next Jakarta midnight. Only supported HTTPS push-service endpoints and valid keys are accepted. Expired subscriptions are cleaned during registration. Guests can disable notifications for their ticket. **Uji notifikasi** sends through the real push transport with a 30-second server-side cooldown.
+
+When staff select **Panggil**, the authenticated `/api/queue/call` route changes status and the database trigger writes an outbox entry per subscribed device. Next.js `after()` dispatches encrypted Web Push after returning to staff, so slow push services do not block the cashier. Claim leases, per-call uniqueness, and a three-attempt cap prevent normal duplicate dispatch. Staff can retry failed or abandoned jobs after 15 seconds. There is no automatic retry worker in this release. Direct SQL/RPC calls still create jobs but require staff retry to dispatch; use the application API for ordinary calls.
+
+`accepted` means accepted by the push service, not delivered, read, or heard. A network timeout can produce an uncertain outcome, so delivery is not exactly-once. Notifications use a per-ticket tag/topic and a 60-second TTL. The TV bell still repeats each minute; customer pushes are sent once per call, not each TV reminder. Do not promise sound or exact timing: network access, browser permissions, Force Stop, Focus/Do Not Disturb, and device power management affect delivery. The service worker does not cache private pages or staff sessions.
 
 ### WhatsApp follow-up
 

@@ -33,11 +33,21 @@ export async function enqueue(
 }
 export async function changeStatus(id: string, status: QueueStatus) {
   if (isDemo) return updateDemo(id, status);
+  if (status === 'called') return callQueue(id);
   const { error } = await supabase().rpc("transition_queue", {
     p_id: id,
     p_status: status,
   });
   if (error) throw new Error(error.message);
+}
+export async function callQueue(id: string, retry = false) {
+  const {data, error} = await supabase().auth.getSession();
+  if(error || !data.session) throw new Error('Sesi berakhir. Silakan masuk kembali.');
+  const response = await fetch('/api/queue/call', { method:'POST',
+    headers:{'Content-Type':'application/json',Authorization:`Bearer ${data.session.access_token}`},
+    body:JSON.stringify({id,retry}) });
+  const result = await response.json();
+  if(!response.ok) throw new Error(result.error || 'Panggilan belum dapat diproses. Coba lagi.');
 }
 export async function fetchTicket(id: string): Promise<QueueEntry | null> {
   if (isDemo) return readDemo().find((r) => r.id === id) ?? null;

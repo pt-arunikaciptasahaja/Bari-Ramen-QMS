@@ -8,6 +8,7 @@ import { useQueue } from '@/hooks/use-queue';
 import { aheadCount, serviceDate, statusLabel } from '@/lib/queue';
 import { fetchCustomerTicket, fragmentToken, validTicketToken, type CustomerTicket } from '@/lib/tickets';
 import { queueGroups } from '@/lib/groups';
+import { PushPermission } from '@/components/push-permission';
 
 export default function CustomerTicketPage() {
   const [ticket, setTicket] = useState<CustomerTicket | null>(null);
@@ -15,8 +16,9 @@ export default function CustomerTicketPage() {
   const [loading, setLoading] = useState(true);
   const [today, setToday] = useState('');
   const [retry, setRetry] = useState(0);
+  const [ticketToken, setTicketToken] = useState('');
   useEffect(() => {
-    const changed = () => { setTicket(null); setLoading(true); setRetry(value => value + 1); };
+    const changed = () => { setTicket(null); setTicketToken(''); setError(''); setLoading(true); setRetry(value => value + 1); };
     window.addEventListener('hashchange', changed);
     return () => window.removeEventListener('hashchange', changed);
   }, []);
@@ -33,7 +35,7 @@ export default function CustomerTicketPage() {
         const result = await fetchCustomerTicket(token, !opened);
         if (alive) {
           opened = Boolean(result); setTicket(result); setToday(serviceDate());
-          if (result) { try { localStorage.setItem('bari-customer-ticket-v1',token); } catch { /* Original link remains usable without storage. */ } }
+          if (result) { setTicketToken(token); try { localStorage.setItem('bari-customer-ticket-v1',token); } catch { /* Original link remains usable without storage. */ } }
           setError(result ? '' : 'Tiket tidak tersedia atau masa berlakunya sudah berakhir. Hubungi staf.');
         }
       } catch (e) { if (alive) setError(e instanceof Error ? e.message : 'Tiket belum dapat dimuat.'); }
@@ -51,7 +53,7 @@ export default function CustomerTicketPage() {
   return <>
     <header className="mx-auto max-w-md px-4 py-4"><Brand /></header>
     <main className="mx-auto max-w-md px-4 pb-8">
-      <h1 className="text-xl font-semibold">{called ? 'Silakan kembali ke kasir' : 'Antrean Anda'}</h1>
+      <h1 className="text-xl font-semibold">{called ? 'Giliran Anda sudah tiba' : 'Tiket antrean Anda'}</h1>
       {loading && <p role="status" className="mt-5 text-sm text-slate-500">Membuka tiket…</p>}
       {entry && <>
         <section className="mt-4 overflow-hidden rounded-xl bg-white">
@@ -63,19 +65,20 @@ export default function CustomerTicketPage() {
               {called ? <BellRing size={18} /> : entry.status === 'seated' ? <Check size={18} /> : <Clock3 size={18} />}
               {expired ? 'Antrean sudah berakhir' : statusLabel[entry.status]}
             </p>
-            {called && entry.called_at && <p className="mt-2 text-xs text-slate-500">Dipanggil sejak <span className="font-mono tabular-nums">{new Date(entry.called_at).toLocaleTimeString('id-ID',{timeZone:'Asia/Jakarta',hour:'2-digit',minute:'2-digit'})}</span> WIB. Tunjukkan nomor ini kepada staf.</p>}
+            {called && entry.called_at && <p className="mt-2 text-xs leading-5 text-slate-500">Dipanggil pukul <span className="font-mono tabular-nums">{new Date(entry.called_at).toLocaleTimeString('id-ID',{timeZone:'Asia/Jakarta',hour:'2-digit',minute:'2-digit'})}</span> WIB. Silakan kembali ke kasir dan tunjukkan tiket ini kepada staf.</p>}
           </div>
           {entry.status === 'waiting' && !expired && <div className="bg-slate-100/70 px-5 py-4">
             <p aria-live="polite" className="text-sm"><span className="font-mono font-semibold tabular-nums">{board.loading || board.error ? '…' : aheadCount(board.rows, {...entry,source:'walk-in'})}</span> antrean grup {entry.group_code} di depan Anda</p>
-            <p className="mt-2 text-xs leading-5 text-slate-500">Panggilan menyesuaikan kapasitas meja, sehingga urutan antargrup bisa berbeda.</p>
+            <p className="mt-2 text-xs leading-5 text-slate-500">Urutan panggilan mengikuti ketersediaan meja untuk jumlah orang dalam grup Anda.</p>
           </div>}
         </section>
-        <p className="mt-4 text-sm leading-6 text-slate-600">{entry.status === 'seated' ? 'Meja sudah diberikan. Terima kasih.' : entry.status === 'no-show' ? 'Antrean telah dilewati. Silakan hubungi staf.' : 'Tetap di sekitar restoran dan siapkan waktu untuk kembali ke kasir.'}</p>
-        <p className="mt-3 text-xs leading-5 text-slate-500">Simpan tautan ini. Halaman diperbarui otomatis saat terbuka. Belum ada notifikasi saat browser ditutup atau HP dikunci.</p>
+        <p className="mt-4 text-sm leading-6 text-slate-600">{entry.status === 'seated' ? 'Meja Anda sudah diberikan. Selamat menikmati hidangan di Bari Ramen.' : entry.status === 'no-show' ? 'Antrean Anda telah dilewati. Silakan temui staf jika masih ingin menunggu meja.' : called ? 'Kami menunggu Anda di kasir.' : 'Anda boleh menunggu di sekitar restoran. Pastikan dapat segera kembali saat dipanggil.'}</p>
+        <PushPermission ticketToken={ticketToken} ended={expired || entry.status==='seated' || entry.status==='no-show'} />
+        <p className="mt-3 text-xs leading-5 text-slate-500">Simpan tautan tiket ini dan tetap berada di sekitar restoran. Anda dapat membukanya kembali selama antrean hari ini.</p>
         <p className="mt-2 text-xs text-slate-500">{board.connection} · Berlaku untuk hari ini</p>
       </>}
       {(error || board.error) && <p role="alert" className="mt-4 rounded-lg bg-amber-50 p-3 text-sm text-amber-900">{error || board.error}{entry ? ' Data mungkin belum terbaru.' : ''}</p>}
-      <button onClick={() => setRetry(value=>value+1)} className="mt-4 min-h-11 rounded-md bg-slate-100 px-4 text-sm font-medium">Perbarui tiket</button>
+      <button onClick={() => setRetry(value=>value+1)} className="mt-4 min-h-11 rounded-md bg-slate-100 px-4 text-sm font-medium">Periksa status terbaru</button>
       <Link href="/" className="mt-4 block py-3 text-sm text-slate-500">Kembali ke beranda</Link>
     </main>
   </>;

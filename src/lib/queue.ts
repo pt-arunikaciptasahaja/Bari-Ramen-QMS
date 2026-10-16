@@ -7,6 +7,7 @@ export type QueueEntry = {
   customer_phone?: string | null;
   ticket_opened_at?: string | null;
   ticket_skipped_at?: string | null;
+  push_status?: 'pending' | 'accepted' | 'failed' | null;
   pax: number;
   source: QueueSource;
   status: QueueStatus;
@@ -17,12 +18,12 @@ export type QueueEntry = {
   group_code: "A" | "B" | "C";
   request_id: string;
 };
-export type BoardEntry = Omit<QueueEntry, "customer_name" | "customer_phone" | "request_id" | "ticket_opened_at" | "ticket_skipped_at">;
+export type BoardEntry = Omit<QueueEntry, "customer_name" | "customer_phone" | "request_id" | "ticket_opened_at" | "ticket_skipped_at" | "push_status">;
 export const statusLabel: Record<QueueStatus, string> = {
   waiting: "Menunggu",
-  called: "Silakan ke Kasir",
-  seated: "Meja Diberikan",
-  "no-show": "Antrean Dilewati",
+  called: "Silakan ke kasir",
+  seated: "Meja sudah diberikan",
+  "no-show": "Antrean dilewati",
 };
 export function serviceDate(date = new Date()) {
   return new Intl.DateTimeFormat("en-CA", {

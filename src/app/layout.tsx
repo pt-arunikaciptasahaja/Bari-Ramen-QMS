@@ -4,6 +4,8 @@ export const metadata: Metadata = {
   title: "Bari Ramen | Antrean",
   description: "Pendaftaran dan status antrean meja Bari Ramen.",
   referrer: "no-referrer",
+  appleWebApp: { capable: true, title: 'Bari Ramen', statusBarStyle: 'default' },
+  icons: { apple: '/pwa-icon' },
   robots: { index: false, follow: false },
 };
 export default function RootLayout({
