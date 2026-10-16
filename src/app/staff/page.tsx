@@ -17,6 +17,7 @@ import {
 import { Brand } from "@/components/brand";
 import { DemoNotice } from "@/components/demo-notice";
 import { QueueForm } from "@/components/queue-form";
+import { PickupScreenSetup, TicketAccessTools } from "@/components/ticket-handoff";
 import { QueueHistory } from "@/components/queue-history";
 import { GroupBadge } from "@/components/group-badge";
 import { groupCodes, queueGroups } from "@/lib/groups";
@@ -214,6 +215,7 @@ export default function StaffPage() {
                 }}
               />
             </Card>
+            <PickupScreenSetup rows={active} onChanged={() => void queue.refresh()} />
             <div aria-live="polite" className="mb-3 text-sm text-emerald-800">
               {message}
             </div>
@@ -284,6 +286,7 @@ export default function StaffPage() {
                     >
                       <TableCell className="whitespace-nowrap font-mono text-lg font-semibold tracking-normal tabular-nums">
                         <span className={`inline-flex rounded-md px-2 py-1 ${queueGroups[entry.group_code].light}`}>{entry.queue_number}</span>
+                        <TicketAccessTools entry={entry} onChanged={() => void queue.refresh()} />
                       </TableCell>
                       <TableCell className="min-w-[110px] font-semibold">
                         {entry.customer_name}

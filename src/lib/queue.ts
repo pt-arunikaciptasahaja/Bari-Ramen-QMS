@@ -5,6 +5,8 @@ export type QueueEntry = {
   queue_number: string;
   customer_name: string;
   customer_phone?: string | null;
+  ticket_opened_at?: string | null;
+  ticket_skipped_at?: string | null;
   pax: number;
   source: QueueSource;
   status: QueueStatus;
@@ -15,7 +17,7 @@ export type QueueEntry = {
   group_code: "A" | "B" | "C";
   request_id: string;
 };
-export type BoardEntry = Omit<QueueEntry, "customer_name" | "customer_phone" | "request_id">;
+export type BoardEntry = Omit<QueueEntry, "customer_name" | "customer_phone" | "request_id" | "ticket_opened_at" | "ticket_skipped_at">;
 export const statusLabel: Record<QueueStatus, string> = {
   waiting: "Menunggu",
   called: "Silakan ke Kasir",

@@ -50,9 +50,10 @@ export default function Home() {
           )}
         </div>
         <p className="text-sm leading-6 text-slate-600">
-          Setelah mendaftar, pantau nomor Anda di layar restoran. Tetap di sekitar
-          restoran dan datang ke kasir saat nomor dipanggil.
+          Setelah mendaftar, scan QR tiket pada layar pelanggan untuk memantau
+          giliran di HP. Nomor juga ditampilkan pada layar antrean restoran.
         </p>
+        <Link href="/ticket" className="mt-4 inline-flex min-h-11 items-center rounded-md bg-slate-100 px-4 text-sm font-semibold">Buka tiket saya</Link>
         <p className="mt-5 text-xs leading-5 text-slate-500">
           Berlaku untuk hari ini. Tetap di sekitar restoran saat menunggu.
         </p>

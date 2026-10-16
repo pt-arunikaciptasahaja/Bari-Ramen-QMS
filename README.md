@@ -33,10 +33,22 @@ Phone numbers are optional, normalized to international format, stored only in t
 | --- | --- |
 | `/` | Information directing guests to register with staff in the restaurant. No self-service form. |
 | `/staff` | Staff login, walk-in registration, phone field, calls, completion, skipped tickets and daily history. |
+| `/pickup#screen=…` | Customer-facing QR pickup display, paired by a staff-generated 12-hour link. No staff login on this device. |
+| `/ticket#t=…` | Private, read-only customer ticket, opened by scanning the pickup display. |
 | `/tv` | Public display with no QR code. |
 | `/q/[id]` | Legacy private tracker, accessible only to the original owning session or staff. No public sharing by phone or ticket UUID alone. |
 
 Queue groups are A (1-2 people), B (3-5), and C (6-12). Numbering follows the Jakarta service date. Staff choose a suitable party for available seating. Completing a ticket means a table was given, not that a transaction was paid or the guest finished dining.
+
+### Customer ticket pickup
+
+1. On `/staff`, select **Siapkan layar pelanggan** and copy the generated display link to a customer-facing phone/tablet. The link is scoped to QR pickup only and expires in 12 hours. Treat it as a private device link.
+2. Register walk-in guests normally. Each ticket automatically gets a private random QR capability stored outside the exposed schema. The pickup screen displays the oldest unclaimed active ticket, without a name or phone.
+3. The guest scans the QR. `/ticket` opens without an account, marks only the first opening, and shows their ticket, exact party size, within-group queue position, and live status. After a four-second acknowledgement, the display moves to the next ticket. Reloading the guest page never changes their queue status or resets the opening time.
+4. Guests without phones remain in the table queue. Staff select **Lewati scan** to let the next QR appear, without skipping the table queue. **QR tiket** can reopen or copy a specific ticket link.
+5. The customer link is retained locally for **Buka tiket saya** on the home page and expires at the Jakarta service-day boundary. Anyone holding the link can view that ticket only; it never exposes names/phones or permits seating/cancellation. No account verification is implied.
+
+The display polls every two seconds and hides the QR on connection errors. The tracker reconciles private details every 15 seconds and uses the anonymous public board for live status. Customer Web Push, background sound, and automatic WhatsApp are not part of this release. Keep the browser open to see changes.
 
 ### WhatsApp follow-up
 
