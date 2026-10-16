@@ -15,11 +15,15 @@ export default function CustomerTicketPage() {
   const [loading, setLoading] = useState(true);
   const [today, setToday] = useState('');
   const [retry, setRetry] = useState(0);
+  useEffect(() => {
+    const changed = () => { setTicket(null); setLoading(true); setRetry(value => value + 1); };
+    window.addEventListener('hashchange', changed);
+    return () => window.removeEventListener('hashchange', changed);
+  }, []);
   const board = useQueue(false, Boolean(ticket));
   useEffect(() => {
     let token = fragmentToken('t');
-    if (token) { try { localStorage.setItem('bari-customer-ticket-v1',token); } catch { /* The original link still works without storage. */ } }
-    else { try { token = localStorage.getItem('bari-customer-ticket-v1') ?? ''; } catch { /* Storage is optional. */ } }
+    if (!token) { try { token = localStorage.getItem('bari-customer-ticket-v1') ?? ''; } catch { /* Storage is optional. */ } }
     if (!validTicketToken(token)) { setError('Scan QR tiket dari layar pelanggan setelah mendaftar melalui staf.'); setLoading(false); return; }
     let alive = true, busy = false, opened = false;
     const load = async () => {
@@ -29,6 +33,7 @@ export default function CustomerTicketPage() {
         const result = await fetchCustomerTicket(token, !opened);
         if (alive) {
           opened = Boolean(result); setTicket(result); setToday(serviceDate());
+          if (result) { try { localStorage.setItem('bari-customer-ticket-v1',token); } catch { /* Original link remains usable without storage. */ } }
           setError(result ? '' : 'Tiket tidak tersedia atau masa berlakunya sudah berakhir. Hubungi staf.');
         }
       } catch (e) { if (alive) setError(e instanceof Error ? e.message : 'Tiket belum dapat dimuat.'); }

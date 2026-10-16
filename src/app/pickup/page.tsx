@@ -8,6 +8,12 @@ import { fragmentToken, fetchPickup, ticketUrl, type PickupState } from '@/lib/t
 import { queueGroups } from '@/lib/groups';
 
 export default function PickupPage() {
+  const [revision, setRevision] = useState(0);
+  useEffect(() => {
+    const changed = () => setRevision(value => value + 1);
+    window.addEventListener('hashchange', changed);
+    return () => window.removeEventListener('hashchange', changed);
+  }, []);
   const [state, setState] = useState<PickupState | null>(null);
   const [origin, setOrigin] = useState('');
   const [error, setError] = useState('');
@@ -15,7 +21,7 @@ export default function PickupPage() {
   const [lastUpdated, setLastUpdated] = useState('');
   useEffect(() => {
     const token = fragmentToken('screen');
-    setConfigured(Boolean(token)); setOrigin(window.location.origin);
+    setConfigured(Boolean(token)); setOrigin(window.location.origin); setState(null); setError('');
     if (!token) return;
     let alive = true, busy = false;
     const load = async () => {
@@ -33,7 +39,7 @@ export default function PickupPage() {
     const timer = setInterval(() => void load(), 2000);
     window.addEventListener('focus', load); window.addEventListener('online', load);
     return () => { alive = false; clearInterval(timer); window.removeEventListener('focus', load); window.removeEventListener('online', load); };
-  }, []);
+  }, [revision]);
   return (
     <div className="flex min-h-dvh flex-col bg-slate-50">
       <header className="border-b border-slate-200 bg-white px-5 py-4"><Brand /></header>
