@@ -31,7 +31,7 @@ export function serviceDate(date = new Date()) {
   }).format(date);
 }
 export function groupFor(pax: number): "A" | "B" | "C" {
-  return pax <= 2 ? "A" : pax <= 4 ? "B" : "C";
+  return pax <= 2 ? "A" : pax <= 5 ? "B" : "C";
 }
 export function validateGuest(name: string, pax: number) {
   if (!name.trim() || name.trim().length > 60)

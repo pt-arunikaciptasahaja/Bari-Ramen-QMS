@@ -7,6 +7,8 @@ import { dailySummary, historyCsv, queueHistory, type HistoryStatus } from "@/li
 import { Button } from "./ui/button";
 import { Card } from "./ui/card";
 import { Table, TableCell, TableHead } from "./ui/table";
+import { GroupBadge } from "./group-badge";
+import { queueGroups } from "@/lib/groups";
 
 const PAGE_SIZE = 20;
 const timeFormat = new Intl.DateTimeFormat("id-ID", { timeZone: "Asia/Jakarta", hour: "2-digit", minute: "2-digit", hourCycle: "h23" });
@@ -84,10 +86,10 @@ export function QueueHistory({ todayRows, todayLoading, todayError }: {
         <Table>
           <thead className="bg-slate-50"><tr>{["Nomor", "Nama Tamu", "Telepon / WhatsApp", "Jumlah", "Asal", "Daftar (WIB)", "Dipanggil (WIB)", "Status"].map((label) => <TableHead key={label}>{label}</TableHead>)}</tr></thead>
           <tbody>{!unavailable && visible.map((entry) => <tr key={entry.id} className="border-t border-slate-100 hover:bg-slate-50">
-            <TableCell className="whitespace-nowrap font-mono font-semibold tabular-nums">{entry.queue_number}</TableCell>
+            <TableCell className="whitespace-nowrap font-mono font-semibold tabular-nums"><span className={`rounded-md px-2 py-1 ${queueGroups[entry.group_code].light}`}>{entry.queue_number}</span></TableCell>
             <TableCell className="min-w-36 font-medium">{entry.customer_name}</TableCell>
             <TableCell className="whitespace-nowrap font-mono text-xs tabular-nums text-slate-500">{entry.customer_phone || "-"}</TableCell>
-            <TableCell><span className="font-mono tabular-nums">{entry.pax}</span> orang</TableCell>
+            <TableCell><GroupBadge group={entry.group_code} pax={entry.pax} /></TableCell>
             <TableCell className="whitespace-nowrap text-slate-500">{entry.source === "online" ? "QR Online" : "Walk-in"}</TableCell>
             <TableCell className="font-mono tabular-nums">{time(entry.created_at)}</TableCell>
             <TableCell className="font-mono tabular-nums">{time(entry.called_at)}</TableCell>

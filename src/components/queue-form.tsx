@@ -2,7 +2,8 @@
 import { FormEvent, useRef, useState } from "react";
 import { ChevronDown, Loader2, Plus, Users } from "lucide-react";
 import { enqueue } from "@/lib/api";
-import { type QueueEntry } from "@/lib/queue";
+import { groupFor, type QueueEntry } from "@/lib/queue";
+import { GroupBadge } from "./group-badge";
 import { Button } from "./ui/button";
 export function QueueForm({
   onAdded,
@@ -136,6 +137,10 @@ export function QueueForm({
         )}
         {busy ? "Menyimpan…" : "Tambah Walk-in"}
       </Button>
+      <div className="col-span-full flex flex-wrap items-center justify-between gap-2 text-xs text-slate-500">
+        <span>Grup tamu: <GroupBadge group={groupFor(Number(pax))} /></span>
+        <span>Pastikan tamu bersedia dihubungi melalui WhatsApp.</span>
+      </div>
       {error && (
         <p role="alert" className="text-sm text-red-700 md:col-span-full">
           {error}

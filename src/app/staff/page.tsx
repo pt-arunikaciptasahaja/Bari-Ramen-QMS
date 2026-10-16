@@ -9,6 +9,7 @@ import {
   ExternalLink,
   ListOrdered,
   LogOut,
+  MessageCircle,
   Search,
   Users,
   X,
@@ -17,6 +18,9 @@ import { Brand } from "@/components/brand";
 import { DemoNotice } from "@/components/demo-notice";
 import { QueueForm } from "@/components/queue-form";
 import { QueueHistory } from "@/components/queue-history";
+import { GroupBadge } from "@/components/group-badge";
+import { groupCodes, queueGroups } from "@/lib/groups";
+import { whatsappLink, whatsappMessage, whatsappState } from "@/lib/whatsapp";
 import { StaffLogin } from "@/components/staff-login";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -46,9 +50,19 @@ export default function StaffPage() {
   const [now, setNow] = useState(0);
   useEffect(() => {
     setNow(Date.now());
-    const timer = setInterval(() => setNow(Date.now()), 15000);
+    const timer = setInterval(() => setNow(Date.now()), 1000);
     return () => clearInterval(timer);
   }, []);
+  function openWhatsApp(entry: QueueEntry) {
+    if (pending || queue.loading || queue.error) return;
+    const latest = queue.rows.find((row) => row.id === entry.id);
+    if (!latest) return;
+    const href = whatsappLink(latest, Date.now());
+    if (!href) return;
+    if (!window.confirm(`Buka pesan untuk ${latest.customer_phone}?\n\n${whatsappMessage(latest)}\n\nPastikan tamu bersedia dihubungi melalui WhatsApp. Anda masih perlu menekan Kirim di WhatsApp.`)) return;
+    window.open(href, "_blank", "noopener,noreferrer");
+    setMessage(`Silakan lanjutkan di WhatsApp untuk ${latest.queue_number}. Pesan belum dikirim otomatis.`);
+  }
   async function act(entry: QueueEntry, status: QueueStatus) {
     if (lock.current) return;
     if (
@@ -222,15 +236,13 @@ export default function StaffPage() {
                 <div className="flex flex-wrap gap-1 rounded-xl bg-paper p-1">
                   {[
                     ["all", "Semua"],
-                    ["A", "A · 1–2 orang"],
-                    ["B", "B · 3–4 orang"],
-                    ["C", "C · 5–12 orang"],
+                    ...groupCodes.map((code) => [code, `${code} · ${queueGroups[code].label}`]),
                   ].map(([value, label]) => (
                     <button
                       key={value}
                       onClick={() => setGroup(value)}
                       aria-pressed={group === value}
-                      className={`min-h-10 rounded-lg px-3 text-xs font-semibold ${group === value ? "bg-white text-ink shadow-sm" : "text-slate-500"}`}
+                      className={`min-h-10 rounded-lg px-3 text-xs font-semibold transition-colors duration-75 ${value !== "all" ? queueGroups[value as keyof typeof queueGroups].light : "bg-white text-ink"} ${group === value ? "ring-2 ring-inset ring-slate-600" : "hover:brightness-95"}`}
                     >
                       {label}
                     </button>
@@ -250,50 +262,48 @@ export default function StaffPage() {
                   />
                 </div>
               </div>
-              <Table>
+              <Table className="[&_td]:px-3 [&_th]:px-3">
                 <thead className="bg-slate-50">
                   <tr>
                     <TableHead>Nomor</TableHead>
                     <TableHead>Nama Tamu</TableHead>
                     <TableHead>Telepon / WhatsApp</TableHead>
                     <TableHead>Jumlah</TableHead>
-                    <TableHead>Asal</TableHead>
-                    <TableHead>Menunggu</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Aksi</TableHead>
                   </tr>
                 </thead>
                 <tbody>
-                  {filtered.map((entry) => (
+                  {filtered.map((entry) => {
+                    const contact = whatsappState(entry, now);
+                    const contactHelp = !contact.hasPhone ? "Nomor belum diisi / tidak valid" : entry.status !== "called" ? "Aktif 3 menit setelah dipanggil" : contact.enabled ? "Lanjutkan kirim di WhatsApp" : `Aktif dalam ${String(Math.floor(contact.remaining / 60)).padStart(2, "0")}:${String(contact.remaining % 60).padStart(2, "0")}`;
+                    return (
                     <tr
                       key={entry.id}
                       className={`border-t border-slate-100 ${entry.status === "called" ? "bg-blue-50/40" : ""}`}
                     >
                       <TableCell className="whitespace-nowrap font-mono text-lg font-semibold tracking-normal tabular-nums">
-                        {entry.queue_number}
+                        <span className={`inline-flex rounded-md px-2 py-1 ${queueGroups[entry.group_code].light}`}>{entry.queue_number}</span>
                       </TableCell>
-                      <TableCell className="min-w-[140px] font-semibold">
+                      <TableCell className="min-w-[110px] font-semibold">
                         {entry.customer_name}
-                      </TableCell>
-                      <TableCell className="whitespace-nowrap font-mono text-xs tabular-nums text-slate-500">{entry.customer_phone || "-"}</TableCell>
-                      <TableCell className="whitespace-nowrap">
-                        <span className="font-mono tabular-nums">
-                          {entry.pax}
-                        </span>{" "}
-                        orang
+                        {entry.source === "online" && <p className="mt-1 text-xs font-normal text-slate-500">QR Online</p>}
                       </TableCell>
                       <TableCell>
-                        <span
-                          className="whitespace-nowrap rounded-md bg-slate-100/50 px-2 py-1 text-xs text-slate-600"
-                        >
-                          {entry.source === "online" ? "QR Online" : "Walk-in"}
-                        </span>
+                        <div className="flex items-center gap-3">
+                          <span className="whitespace-nowrap font-mono text-xs tabular-nums text-slate-600">{entry.customer_phone || "-"}</span>
+                          <div className="min-w-40">
+                            <Button type="button" variant="outline" disabled={!contact.enabled || pending !== null || queue.loading || Boolean(queue.error)}
+                              onClick={() => openWhatsApp(entry)} aria-label={`Buka WhatsApp untuk ${entry.queue_number}`}
+                              className="min-h-10 whitespace-nowrap border-emerald-200 bg-emerald-50 px-3 text-xs text-emerald-800 hover:bg-emerald-100 disabled:border-slate-200 disabled:bg-slate-100 disabled:text-slate-400 disabled:opacity-100">
+                              <MessageCircle size={15} />Buka WhatsApp
+                            </Button>
+                            <p className="mt-1 whitespace-nowrap text-[11px] text-slate-500">{contactHelp}</p>
+                          </div>
+                        </div>
                       </TableCell>
-                      <TableCell className="whitespace-nowrap text-slate-500">
-                        <span className="font-mono tabular-nums">
-                          {now ? elapsed(entry.created_at, now) : 0}
-                        </span>{" "}
-                        menit
+                      <TableCell className="whitespace-nowrap">
+                        <GroupBadge group={entry.group_code} pax={entry.pax} />
                       </TableCell>
                       <TableCell>
                         <span
@@ -301,6 +311,7 @@ export default function StaffPage() {
                         >
                           {entry.status === "called" ? "Dipanggil" : "Menunggu"}
                         </span>
+                        {entry.status === "waiting" && <p className="mt-1 whitespace-nowrap text-xs text-slate-500"><span className="font-mono tabular-nums">{now ? elapsed(entry.created_at, now) : 0}</span> menit</p>}
                         {entry.status === "called" && entry.called_at && (
                           <p className="mt-1 whitespace-nowrap font-mono text-xs tabular-nums text-slate-500">
                             {callTimeFormat.format(new Date(entry.called_at))} WIB
@@ -339,7 +350,7 @@ export default function StaffPage() {
                         </div>
                       </TableCell>
                     </tr>
-                  ))}
+                  );})}
                 </tbody>
               </Table>
               {!filtered.length && (

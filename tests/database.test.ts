@@ -210,6 +210,22 @@ test("PostgreSQL migration, authorization, numbering, retries and transitions", 
       // Existing staff clients can still use the four-argument call during rollout.
       assert.ok((await enqueue("Legacy staff",2,"walk-in")).id);
     });
+    await db.exec("reset role");
+    await db.exec(await readFile(new URL("../supabase/migrations/20261016080830_update_party_group_boundaries.sql", import.meta.url), "utf8"));
+    await t.test("new party boundaries preserve old tickets and protected registration", async () => {
+      await asUser(staff);
+      for (const [pax, group] of [[2, "A"], [3, "B"], [5, "B"], [6, "C"], [12, "C"]] as const) {
+        const ticket = await enqueue("Boundary Test", pax, "walk-in");
+        assert.ok(ticket.queue_number.startsWith(`${group}-`));
+      }
+      const old = await db.query<{queue_number: string}>("select queue_number from queue_entries where id=$1", [big.id]);
+      assert.equal(old.rows[0].queue_number, big.queue_number);
+      assert.equal((await enqueue("Retry unchanged", 5, "walk-in", request)).id, retry1.id);
+      await asUser(guest);
+      await assert.rejects(enqueue("Guest still blocked", 5, "walk-in"), /Akses staf/);
+      await asUser(staff);
+      await assert.rejects(enqueue("Online still blocked", 5, "online"), /Pendaftaran hanya/);
+    });
   } finally {
     await db.close();
   }

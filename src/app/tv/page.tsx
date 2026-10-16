@@ -3,13 +3,15 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { BellRing, Maximize, Volume2 } from "lucide-react";
 import { Brand } from "@/components/brand";
 import { DemoNotice } from "@/components/demo-notice";
+import { GroupBadge } from "@/components/group-badge";
+import { groupCodes, queueGroups } from "@/lib/groups";
 import { useQueue } from "@/hooks/use-queue";
 import { displayQueues } from "@/lib/queue";
 import { callAgeSeconds, carouselPage, collectReminders, rowsForHeight, warningLevel } from "@/lib/tv";
 
 const urgencyClasses = {
-  normal: "border-white/10 bg-[#181818] text-white",
-  warning: "border-amber-500/60 bg-amber-950/50 text-amber-200",
+  normal: "border-white/10 bg-white/5 text-slate-300",
+  warning: "border-amber-500/60 bg-amber-950/60 text-amber-200",
   urgent: "border-rose-500/70 bg-rose-950/60 text-rose-200",
 };
 function duration(calledAt: string | null, now: number) {
@@ -97,11 +99,12 @@ export default function TVPage() {
       </header>
       <main className="grid min-h-0 flex-1 grid-cols-1 gap-4 p-4 sm:grid-cols-[minmax(0,1fr)_minmax(230px,34%)] lg:gap-6 lg:p-6">
         <section className="flex min-h-0 min-w-0 flex-col gap-3">
-          <div key={flash} className={`flex min-h-0 flex-1 flex-col items-center justify-center rounded-xl border p-4 text-center transition-colors duration-75 ${urgencyClasses[level]} ${flash ? "call-flash" : ""}`}>
+          <div key={flash} className={`flex min-h-0 flex-1 flex-col items-center justify-center rounded-xl border border-white/10 bg-[#181818] p-4 text-center transition-colors duration-75 ${flash ? "call-flash" : ""}`}>
             <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-widest opacity-70"><BellRing size={17} />Panggilan terbaru</p>
-            <h1 aria-live="polite" className="my-3 whitespace-nowrap font-mono text-[clamp(2rem,9vw,8rem)] font-semibold leading-none tabular-nums">{loading ? "…" : current?.queue_number ?? "-"}</h1>
+            <h1 aria-live="polite" className={`my-3 whitespace-nowrap font-mono text-[clamp(2rem,9vw,8rem)] font-semibold leading-none tabular-nums ${current ? queueGroups[current.group_code].number : "text-white"}`}>{loading ? "…" : current?.queue_number ?? "-"}</h1>
+            {current && <div className="mb-3"><GroupBadge group={current.group_code} pax={current.pax} dark /></div>}
             <p className="text-sm opacity-80 lg:text-lg">{current ? `Untuk ${current.pax} orang. Silakan menuju kasir.` : "Pendaftaran antrean melalui staf di restoran."}</p>
-            {current && <p className="mt-3 text-sm"><span className="font-mono tabular-nums">{duration(current.called_at, now)}</span> sejak dipanggil{level !== "normal" ? " · Menunggu kedatangan tamu" : ""}</p>}
+            {current && <p className={`mt-3 rounded-lg border px-3 py-2 text-sm ${urgencyClasses[level]}`}><span className="font-mono tabular-nums">{duration(current.called_at, now)}</span> sejak dipanggil{level !== "normal" ? " · Menunggu kedatangan tamu" : ""}</p>}
           </div>
           {previousCalls.length > 0 && <section aria-labelledby="previous-calls-title" className="shrink-0 rounded-xl bg-white/5 p-3">
             <div className="flex items-center justify-between text-xs text-slate-300">
@@ -109,9 +112,9 @@ export default function TVPage() {
               {previousPage.pages > 1 && <span className="font-mono tabular-nums">{previousPage.page + 1}/{previousPage.pages}</span>}
             </div>
             <ul className="mt-2 grid grid-cols-2 gap-2">
-              {previousPage.items.map((entry) => <li key={entry.id} className={`flex items-center justify-between gap-2 rounded-lg border px-3 py-2 ${urgencyClasses[warningLevel(entry.called_at, now)]}`}>
+              {previousPage.items.map((entry) => <li key={entry.id} className={`flex items-center justify-between gap-2 rounded-lg px-3 py-2 ${queueGroups[entry.group_code].dark}`}>
                 <span className="whitespace-nowrap font-mono text-xl font-semibold tabular-nums lg:text-3xl">{entry.queue_number}</span>
-                <span className="text-right text-xs opacity-80"><span className="font-mono tabular-nums">{entry.pax}</span> orang<br /><span className="font-mono tabular-nums">{duration(entry.called_at, now)}</span></span>
+                <span className="text-right text-xs"><span className="font-mono tabular-nums">{entry.pax}</span> orang<br /><span className={`inline-block rounded-md border px-1.5 py-0.5 font-mono tabular-nums ${urgencyClasses[warningLevel(entry.called_at, now)]}`}>{duration(entry.called_at, now)}</span></span>
               </li>)}
             </ul>
             {previousPage.pages > 1 && <p className="mt-2 text-xs text-slate-400">Semua panggilan bergantian tampil setiap 15 detik.</p>}
@@ -128,19 +131,21 @@ export default function TVPage() {
             <span className="whitespace-nowrap font-mono text-xs tabular-nums text-slate-400">{waiting.length} antrean</span>
           </div>
           <div ref={waitingArea} className="min-h-0 flex-1 overflow-hidden">
-            {waitingPage.items.length ? waitingPage.items.map((entry, index) => <div key={entry.id} className="flex h-12 items-center justify-between gap-2 border-b border-white/10">
-              <span className="font-mono text-xs tabular-nums text-slate-500">{String(waitingPage.offset + index + 1).padStart(2, "0")}</span>
+            {waitingPage.items.length ? waitingPage.items.map((entry, index) => <div key={entry.id} className="flex h-12 items-center">
+              <div className={`flex h-11 w-full items-center justify-between gap-2 rounded-md px-2 ${queueGroups[entry.group_code].dark}`}>
+              <span className="font-mono text-xs tabular-nums opacity-70">{String(waitingPage.offset + index + 1).padStart(2, "0")}</span>
               <span className="whitespace-nowrap font-mono text-2xl font-semibold tabular-nums lg:text-3xl">{entry.queue_number}</span>
-              <span className="whitespace-nowrap text-xs text-slate-400"><span className="font-mono tabular-nums">{entry.pax}</span> orang</span>
+              <span className="whitespace-nowrap text-xs"><span className="font-mono tabular-nums">{entry.pax}</span> orang</span>
+              </div>
             </div>) : <p className="py-8 text-center text-sm text-slate-400">{loading ? "Memuat antrean..." : "Belum ada antrean menunggu."}</p>}
           </div>
           <div className="mt-2 shrink-0 border-t border-white/10 pt-2 text-xs text-slate-400">
             <p>Halaman <span className="font-mono tabular-nums">{waitingPage.page + 1}/{waitingPage.pages}</span>{waitingPage.pages > 1 ? " · Berganti setiap 15 detik" : ""}</p>
-            <p className="mt-1">A: 1-2 · B: 3-4 · C: 5-12 orang</p>
+            <div className="mt-2 flex flex-wrap gap-2" aria-label="Warna grup tamu">{groupCodes.map((group) => <GroupBadge key={group} group={group} dark />)}</div>
           </div>
         </aside>
       </main>
-      <footer className="shrink-0 px-5 pb-3 text-center text-xs text-slate-500">Kuning: 1 menit · Merah: 3 menit. Nomor tetap aktif sampai staf menekan Selesai atau Lewati.</footer>
+      <footer className="shrink-0 px-5 pb-3 text-center text-xs text-slate-400">Timer kuning: 1 menit · Timer merah: 3 menit. Warna grup tetap sama sampai antrean selesai atau dilewati.</footer>
     </div>
   );
 }

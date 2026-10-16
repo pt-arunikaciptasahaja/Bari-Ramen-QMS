@@ -25,9 +25,10 @@ function row(n: number, group = "A", status = "waiting"): BoardEntry {
   } as BoardEntry;
 }
 test("group boundaries include large parties", () => {
-  assert.deepEqual([1, 2, 3, 4, 5, 12].map(groupFor), [
+  assert.deepEqual([1, 2, 3, 4, 5, 6, 12].map(groupFor), [
     "A",
     "A",
+    "B",
     "B",
     "B",
     "C",
