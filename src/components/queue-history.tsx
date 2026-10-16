@@ -82,10 +82,11 @@ export function QueueHistory({ todayRows, todayLoading, todayError }: {
             onChange={(e) => { setSearch(e.target.value); setPage(0); }} className="min-h-11 rounded-md border border-slate-200 px-3 text-sm" />
         </div>
         <Table>
-          <thead className="bg-slate-50"><tr>{["Nomor", "Nama Tamu", "Jumlah", "Asal", "Daftar (WIB)", "Dipanggil (WIB)", "Status"].map((label) => <TableHead key={label}>{label}</TableHead>)}</tr></thead>
+          <thead className="bg-slate-50"><tr>{["Nomor", "Nama Tamu", "Telepon / WhatsApp", "Jumlah", "Asal", "Daftar (WIB)", "Dipanggil (WIB)", "Status"].map((label) => <TableHead key={label}>{label}</TableHead>)}</tr></thead>
           <tbody>{!unavailable && visible.map((entry) => <tr key={entry.id} className="border-t border-slate-100 hover:bg-slate-50">
             <TableCell className="whitespace-nowrap font-mono font-semibold tabular-nums">{entry.queue_number}</TableCell>
             <TableCell className="min-w-36 font-medium">{entry.customer_name}</TableCell>
+            <TableCell className="whitespace-nowrap font-mono text-xs tabular-nums text-slate-500">{entry.customer_phone || "-"}</TableCell>
             <TableCell><span className="font-mono tabular-nums">{entry.pax}</span> orang</TableCell>
             <TableCell className="whitespace-nowrap text-slate-500">{entry.source === "online" ? "QR Online" : "Walk-in"}</TableCell>
             <TableCell className="font-mono tabular-nums">{time(entry.created_at)}</TableCell>

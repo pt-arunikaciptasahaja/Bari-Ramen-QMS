@@ -191,6 +191,25 @@ test("PostgreSQL migration, authorization, numbering, retries and transitions", 
         await assert.rejects(enqueue("Anon", 2), /permission denied/);
       },
     );
+    await db.exec("reset role");
+    await db.exec(await readFile(new URL("../supabase/migrations/20261016072753_walkin_only_customer_phone.sql", import.meta.url), "utf8"));
+    await t.test("walk-in-only migration blocks guest registration and protects phone numbers", async () => {
+      await asUser(guest);
+      await assert.rejects(enqueue("Guest blocked",2), /Akses staf/);
+      await assert.rejects(enqueue("Guest walk-in",2,"walk-in"), /Akses staf/);
+      await asUser(staff);
+      await assert.rejects(enqueue("Online blocked",2), /Pendaftaran hanya/);
+      const r = await db.query<{ ticket: { id: string; customer_phone: string } }>(
+        "select to_jsonb(public.enqueue($1,2,'walk-in',$2,$3)) as ticket",
+        ["Phone Test",crypto.randomUUID(),"0812-3456-7890"],
+      );
+      assert.equal(r.rows[0].ticket.customer_phone,"+6281234567890");
+      const publicRow=await db.query<Record<string,unknown>>("select * from queue_board where id=$1",[r.rows[0].ticket.id]);
+      assert.equal("customer_phone" in publicRow.rows[0],false);
+      await assert.rejects(db.query("select public.enqueue('Bad phone',2,'walk-in',$1,'abc123')",[crypto.randomUUID()]),/Nomor telepon/);
+      // Existing staff clients can still use the four-argument call during rollout.
+      assert.ok((await enqueue("Legacy staff",2,"walk-in")).id);
+    });
   } finally {
     await db.close();
   }

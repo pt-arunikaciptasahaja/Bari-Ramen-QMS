@@ -4,6 +4,7 @@ export type QueueEntry = {
   id: string;
   queue_number: string;
   customer_name: string;
+  customer_phone?: string | null;
   pax: number;
   source: QueueSource;
   status: QueueStatus;
@@ -14,7 +15,7 @@ export type QueueEntry = {
   group_code: "A" | "B" | "C";
   request_id: string;
 };
-export type BoardEntry = Omit<QueueEntry, "customer_name" | "request_id">;
+export type BoardEntry = Omit<QueueEntry, "customer_name" | "customer_phone" | "request_id">;
 export const statusLabel: Record<QueueStatus, string> = {
   waiting: "Menunggu",
   called: "Silakan ke Kasir",
@@ -82,4 +83,17 @@ export function displayQueues<T extends BoardEntry>(rows: T[], day = serviceDate
 }
 export function elapsed(iso: string, now: number) {
   return Math.max(0, Math.floor((now - Date.parse(iso)) / 60000));
+}
+
+// Normalize local Indonesian and international numbers without guessing arbitrary text.
+export function normalizePhone(value: string): string | null {
+  const input = value.trim();
+  if (!input) return null;
+  if (!/^[+\d\s().-]+$/.test(input) || (input.match(/\+/g)?.length ?? 0) > 1 || (input.includes("+") && !input.startsWith("+")))
+    throw new Error("Nomor telepon tidak valid. Gunakan 08..., 62..., atau +kode negara.");
+  let digits = input.replace(/\D/g, "");
+  if (digits.startsWith("0")) digits = "62" + digits.slice(1);
+  else if (!input.startsWith("+") && digits.startsWith("8")) digits = "62" + digits;
+  if (!/^[1-9]\d{7,14}$/.test(digits)) throw new Error("Nomor telepon harus 8 sampai 15 digit, termasuk kode negara.");
+  return "+" + digits;
 }

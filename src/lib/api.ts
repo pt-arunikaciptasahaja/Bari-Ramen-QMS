@@ -2,6 +2,7 @@ import { addDemo, readDemo, updateDemo } from "./demo";
 import { ensureGuest, isDemo, supabase } from "./supabase";
 import {
   validateGuest,
+  normalizePhone,
   type QueueEntry,
   type QueueSource,
   type QueueStatus,
@@ -11,15 +12,21 @@ export async function enqueue(
   pax: number,
   source: QueueSource,
   requestId: string,
+  phone = "",
 ): Promise<QueueEntry> {
   validateGuest(name, pax);
-  if (isDemo) return addDemo(name, pax, source, requestId);
-  await ensureGuest();
+  const customerPhone = normalizePhone(phone);
+  if (source !== "walk-in") throw new Error("Pendaftaran hanya melalui staf di restoran.");
+  if (isDemo) return addDemo(name, pax, source, requestId, customerPhone);
+  const session = await supabase().auth.getSession();
+  if (session.error) throw session.error;
+  if (!session.data.session) throw new Error("Masuk sebagai staf untuk mendaftarkan tamu.");
   const { data, error } = await supabase().rpc("enqueue", {
     p_name: name.trim(),
     p_pax: pax,
     p_source: source,
     p_request_id: requestId,
+    p_phone: customerPhone,
   });
   if (error) throw new Error(error.message);
   return data as QueueEntry;

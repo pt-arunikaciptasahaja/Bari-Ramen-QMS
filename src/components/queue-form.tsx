@@ -1,17 +1,16 @@
 "use client";
 import { FormEvent, useRef, useState } from "react";
-import { ArrowRight, ChevronDown, Loader2, Plus, Users } from "lucide-react";
+import { ChevronDown, Loader2, Plus, Users } from "lucide-react";
 import { enqueue } from "@/lib/api";
 import { type QueueEntry } from "@/lib/queue";
 import { Button } from "./ui/button";
 export function QueueForm({
-  staff = false,
   onAdded,
 }: {
-  staff?: boolean;
   onAdded: (entry: QueueEntry) => void;
 }) {
   const [name, setName] = useState("");
+  const [phone, setPhone] = useState("");
   const [pax, setPax] = useState("2");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -32,11 +31,13 @@ export function QueueForm({
       const entry = await enqueue(
         name,
         Number(pax),
-        staff ? "walk-in" : "online",
+        "walk-in",
         requestId.current,
+        phone,
       );
       onAdded(entry);
       setName("");
+      setPhone("");
       requestId.current = undefined;
     } catch (e) {
       setError(
@@ -52,11 +53,7 @@ export function QueueForm({
   return (
     <form
       onSubmit={submit}
-      className={
-        staff
-          ? "grid gap-3 md:grid-cols-[1fr_180px_auto] md:items-end"
-          : "space-y-4"
-      }
+      className="grid gap-3 sm:grid-cols-2 sm:items-end xl:grid-cols-[1fr_1fr_150px_auto]"
     >
       <div>
         <label
@@ -79,6 +76,15 @@ export function QueueForm({
           }}
           className="field"
         />
+      </div>
+      <div>
+        <label htmlFor="guest-phone" className="mb-2 block text-sm font-semibold">
+          Telepon / WhatsApp <span className="font-normal text-slate-500">(opsional)</span>
+        </label>
+        <input id="guest-phone" type="tel" inputMode="tel" autoComplete="tel"
+          placeholder="08xxxxxxxxxx" maxLength={24} value={phone} disabled={busy}
+          onChange={(e) => { changed(); setPhone(e.target.value); }}
+          className="field font-mono tabular-nums" />
       </div>
       <div>
         <label htmlFor="guest-pax" className="mb-2 block text-sm font-semibold">
@@ -121,15 +127,14 @@ export function QueueForm({
       <Button
         type="submit"
         disabled={busy || !name.trim()}
-        className={staff ? "h-12" : "h-12 w-full text-base"}
+        className="h-12"
       >
         {busy ? (
           <Loader2 className="animate-spin" size={19} />
-        ) : staff ? (
+        ) : (
           <Plus size={20} />
-        ) : null}
-        {busy ? "Menyimpan…" : staff ? "Tambah Walk-in" : "Ambil Antrean"}
-        {!staff && !busy && <ArrowRight size={19} />}
+        )}
+        {busy ? "Menyimpan…" : "Tambah Walk-in"}
       </Button>
       {error && (
         <p role="alert" className="text-sm text-red-700 md:col-span-full">

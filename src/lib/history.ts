@@ -37,9 +37,9 @@ export function csvCell(value: string | number) {
 }
 
 export function historyCsv(rows: QueueEntry[]) {
-  const headers = ["Tanggal layanan", "Nomor", "Nama Tamu", "Jumlah Orang", "Asal", "Status", "Daftar (ISO UTC)", "Dipanggil (ISO UTC)", "Tunggu sampai dipanggil (menit)"];
+  const headers = ["Tanggal layanan", "Nomor", "Nama Tamu", "Telepon / WhatsApp", "Jumlah Orang", "Asal", "Status", "Daftar (ISO UTC)", "Dipanggil (ISO UTC)", "Tunggu sampai dipanggil (menit)"];
   const records = rows.map((r) => [
-    r.service_date, r.queue_number, r.customer_name, r.pax,
+    r.service_date, r.queue_number, r.customer_name, r.customer_phone ?? "", r.pax,
     r.source === "online" ? "QR Online" : "Walk-in",
     r.status === "seated" ? "Meja diberikan" : "Dilewati",
     r.created_at, r.called_at ?? "",

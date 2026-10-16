@@ -1,15 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { Brand } from "@/components/brand";
-import { QueueForm } from "@/components/queue-form";
 import { DemoNotice } from "@/components/demo-notice";
 import { useQueue } from "@/hooks/use-queue";
 import { activeQueue } from "@/lib/queue";
 
 export default function Home() {
-  const router = useRouter();
   const queue = useQueue();
   const waiting = activeQueue(queue.rows).filter(
     (entry) => entry.status === "waiting",
@@ -24,11 +21,11 @@ export default function Home() {
       </header>
       <main className="mx-auto w-full max-w-md flex-1 px-4 py-6 sm:py-8">
         <h1 className="text-2xl font-semibold tracking-tight">
-          Daftar antrean
+          Antrean Bari Ramen
         </h1>
         <p className="mt-2 text-sm leading-6 text-slate-500">
-          Isi nama dan jumlah orang. Nomor antrean akan ditampilkan setelah
-          mendaftar.
+          Pendaftaran antrean dilakukan langsung di restoran melalui staf.
+          Silakan ke kasir untuk mendapatkan nomor antrean.
         </p>
         <div
           className="my-5 rounded-lg bg-slate-100/50 px-3 py-3"
@@ -52,7 +49,10 @@ export default function Home() {
             <p className="mt-1 text-xs text-red-700">Periksa koneksi Anda.</p>
           )}
         </div>
-        <QueueForm onAdded={(entry) => router.push(`/q/${entry.id}`)} />
+        <p className="text-sm leading-6 text-slate-600">
+          Setelah mendaftar, pantau nomor Anda di layar restoran. Tetap di sekitar
+          restoran dan datang ke kasir saat nomor dipanggil.
+        </p>
         <p className="mt-5 text-xs leading-5 text-slate-500">
           Berlaku untuk hari ini. Tetap di sekitar restoran saat menunggu.
         </p>

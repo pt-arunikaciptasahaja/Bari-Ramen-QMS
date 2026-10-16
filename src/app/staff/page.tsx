@@ -161,7 +161,7 @@ export default function StaffPage() {
                   Antrean Tamu
                 </h1>
                 <p className="mt-2 text-sm text-slate-500">
-                  Kelola antrean walk-in dan online.
+                  Kelola antrean tamu yang mendaftar di restoran.
                 </p>
               </div>
               <div className="flex items-center gap-2 text-xs text-slate-500">
@@ -194,7 +194,6 @@ export default function StaffPage() {
                 walk-in
               </h2>
               <QueueForm
-                staff
                 onAdded={(entry) => {
                   setMessage(`${entry.queue_number} berhasil ditambahkan.`);
                   void queue.refresh();
@@ -256,6 +255,7 @@ export default function StaffPage() {
                   <tr>
                     <TableHead>Nomor</TableHead>
                     <TableHead>Nama Tamu</TableHead>
+                    <TableHead>Telepon / WhatsApp</TableHead>
                     <TableHead>Jumlah</TableHead>
                     <TableHead>Asal</TableHead>
                     <TableHead>Menunggu</TableHead>
@@ -275,6 +275,7 @@ export default function StaffPage() {
                       <TableCell className="min-w-[140px] font-semibold">
                         {entry.customer_name}
                       </TableCell>
+                      <TableCell className="whitespace-nowrap font-mono text-xs tabular-nums text-slate-500">{entry.customer_phone || "-"}</TableCell>
                       <TableCell className="whitespace-nowrap">
                         <span className="font-mono tabular-nums">
                           {entry.pax}
@@ -354,7 +355,7 @@ export default function StaffPage() {
                   <p className="text-sm text-slate-500">
                     {search
                       ? "Coba nama atau nomor lainnya."
-                      : "Tamu walk-in dan QR akan muncul di sini."}
+                      : "Tamu yang didaftarkan staf akan muncul di sini."}
                   </p>
                 </div>
               )}

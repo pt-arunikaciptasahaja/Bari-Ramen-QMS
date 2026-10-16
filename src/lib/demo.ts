@@ -35,8 +35,10 @@ export async function addDemo(
   pax: number,
   source: QueueSource,
   request: string,
+  phone: string | null = null,
 ) {
   validateGuest(name, pax);
+  if (source !== "walk-in") throw new Error("Pendaftaran hanya melalui staf di restoran.");
   return locked(() => {
     const rows = readDemo();
     const existing = rows.find((r) => r.request_id === request);
@@ -55,6 +57,7 @@ export async function addDemo(
       id: crypto.randomUUID(),
       queue_number: `${group}-${String(n).padStart(3, "0")}`,
       customer_name: name.trim(),
+      customer_phone: phone,
       pax,
       source,
       status: "waiting",
