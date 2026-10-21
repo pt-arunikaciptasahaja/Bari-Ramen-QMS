@@ -1,6 +1,6 @@
 import { normalizePhone, serviceDate, type QueueEntry } from "./queue";
 
-export const WHATSAPP_DELAY_SECONDS = 180;
+export const WHATSAPP_DELAY_SECONDS = 600;
 type ContactEntry = Pick<QueueEntry, "customer_phone" | "customer_name" | "queue_number" | "status" | "called_at" | "service_date">;
 
 export function whatsappState(entry: ContactEntry, now: number) {
