@@ -4,7 +4,7 @@ export function callAgeSeconds(calledAt: string | null, now: number) {
   return Number.isFinite(value) ? Math.max(0, Math.floor((now - value) / 1000)) : 0;
 }
 export function reminderSlot(calledAt: string | null, now: number) {
-  return Math.floor(callAgeSeconds(calledAt, now) / 60);
+  return Math.floor(callAgeSeconds(calledAt, now) / 300);
 }
 export function warningLevel(calledAt: string | null, now: number) {
   const age = callAgeSeconds(calledAt, now);
