@@ -103,7 +103,7 @@ export default function TVPage() {
             <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-widest opacity-70"><BellRing size={17} />Sedang dipanggil</p>
             <h1 aria-live="polite" className={`my-3 whitespace-nowrap font-mono text-[clamp(2rem,9vw,8rem)] font-semibold leading-none tabular-nums ${current ? queueGroups[current.group_code].number : "text-white"}`}>{loading ? "…" : current?.queue_number ?? "-"}</h1>
             {current && <div className="mb-3"><GroupBadge group={current.group_code} pax={current.pax} dark /></div>}
-            <p className="text-sm opacity-80 lg:text-lg">{current ? `Untuk ${current.pax} orang. Silakan menuju kasir.` : "Scan QR pendaftaran di restoran atau minta bantuan staf."}</p>
+            <p className="text-sm opacity-80 lg:text-lg">{current ? `Panggilan ${current.call_count ?? 1}/3 · Untuk ${current.pax} orang. Silakan menuju kasir.` : "Scan QR pendaftaran di restoran atau minta bantuan staf."}</p>
             {current && <p className={`mt-3 rounded-lg border px-3 py-2 text-sm ${urgencyClasses[level]}`}><span className="font-mono tabular-nums">{duration(current.called_at, now)}</span> sejak dipanggil{level !== "normal" ? " · Menunggu kedatangan tamu" : ""}</p>}
           </div>
           {previousCalls.length > 0 && <section aria-labelledby="previous-calls-title" className="shrink-0 rounded-xl bg-white/5 p-3">
@@ -120,7 +120,7 @@ export default function TVPage() {
             {previousPage.pages > 1 && <p className="mt-2 text-xs text-slate-400">Semua panggilan bergantian tampil setiap 15 detik.</p>}
           </section>}
           <div className="flex shrink-0 flex-wrap items-center justify-between gap-2 text-xs text-slate-400">
-            <span>Pengingat setiap 1 menit sampai diselesaikan staf.</span>
+            <span>Panggilan menit 0, 5, dan 10 · Dilewati otomatis pada menit 15.</span>
             <button onClick={() => void enableSound()} className={`flex min-h-10 items-center gap-2 rounded-lg border px-3 ${sound ? "border-emerald-800 text-emerald-300" : "border-amber-700 text-amber-200"}`}><Volume2 size={16} />{sound ? "Suara aktif · Uji bel" : "Aktifkan suara"}</button>
           </div>
           {(error || soundError) && <p role="alert" className="shrink-0 rounded-lg bg-rose-950/60 p-2 text-xs text-rose-200">{error || soundError}</p>}

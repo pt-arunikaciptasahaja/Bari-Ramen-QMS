@@ -22,7 +22,7 @@ import { PickupScreenSetup, TicketAccessTools } from "@/components/ticket-handof
 import { QueueHistory } from "@/components/queue-history";
 import { GroupBadge } from "@/components/group-badge";
 import { groupCodes, queueGroups } from "@/lib/groups";
-import { whatsappLink, whatsappMessage, whatsappState } from "@/lib/whatsapp";
+import { BARI_WHATSAPP, whatsappLink, whatsappMessage, whatsappState } from "@/lib/whatsapp";
 import { StaffLogin } from "@/components/staff-login";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -68,7 +68,7 @@ export default function StaffPage() {
     if (!latest) return;
     const href = whatsappLink(latest, Date.now());
     if (!href) return;
-    if (!window.confirm(`Buka pesan untuk ${latest.customer_phone}?\n\n${whatsappMessage(latest)}\n\nPastikan tamu bersedia dihubungi melalui WhatsApp. Anda masih perlu menekan Kirim di WhatsApp.`)) return;
+    if (!window.confirm(`Buka pesan untuk ${latest.customer_phone}?\n\n${whatsappMessage(latest)}\n\nGunakan akun WhatsApp restoran ${BARI_WHATSAPP}. Pastikan tamu bersedia dihubungi melalui WhatsApp. Anda masih perlu menekan Kirim di WhatsApp.`)) return;
     window.open(href, "_blank", "noopener,noreferrer");
     setMessage(`Silakan lanjutkan di WhatsApp untuk ${latest.queue_number}. Pesan belum dikirim otomatis.`);
   }
@@ -286,7 +286,7 @@ export default function StaffPage() {
                 <tbody>
                   {filtered.map((entry) => {
                     const contact = whatsappState(entry, now);
-                    const contactHelp = !contact.hasPhone ? "Nomor belum diisi / tidak valid" : entry.status !== "called" ? "Aktif 3 menit setelah dipanggil" : contact.enabled ? "Lanjutkan kirim di WhatsApp" : `Aktif dalam ${String(Math.floor(contact.remaining / 60)).padStart(2, "0")}:${String(contact.remaining % 60).padStart(2, "0")}`;
+                    const contactHelp = !contact.hasPhone ? "Nomor belum diisi / tidak valid" : entry.status !== "called" ? "Aktif setelah panggilan ke-3 (menit ke-10)" : contact.enabled ? `Gunakan WhatsApp restoran ${BARI_WHATSAPP}` : contact.remaining === 0 ? "Menunggu konfirmasi panggilan ke-3 dari server" : `Aktif dalam ${String(Math.floor(contact.remaining / 60)).padStart(2, "0")}:${String(contact.remaining % 60).padStart(2, "0")}`;
                     return (
                     <tr
                       key={entry.id}
@@ -325,7 +325,7 @@ export default function StaffPage() {
                         {entry.status === "waiting" && <p className="mt-1 whitespace-nowrap text-xs text-slate-500"><span className="font-mono tabular-nums">{now ? elapsed(entry.created_at, now) : 0}</span> menit</p>}
                         {entry.status === "called" && entry.called_at && (
                           <p className="mt-1 whitespace-nowrap font-mono text-xs tabular-nums text-slate-500">
-                            {callTimeFormat.format(new Date(entry.called_at))} WIB
+                            Panggilan {entry.call_count ?? 1}/3 · {callTimeFormat.format(new Date(entry.called_at))} WIB
                           </p>
                         )}
                         {entry.status === 'called' && !isDemo && <div className="mt-2 text-[11px] leading-5 text-slate-500">

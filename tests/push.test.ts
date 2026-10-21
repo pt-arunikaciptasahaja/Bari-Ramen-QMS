@@ -88,7 +88,7 @@ test('push subscription access, outbox deduplication, leases, retries and consen
     await call("select finish_push_job($1,'accepted',201) as v",[jobs[0].id]);
     await call("select finish_push_job($1,'failed',503) as v",[jobs[1].id]);
     await call("select finish_push_job($1,'dead',410) as v",[jobs[2].id]);
-    await db.exec('reset role');await db.exec("update qms_private.push_jobs set leased_at=clock_timestamp()-interval '20 seconds' where state='failed'");
+    await db.exec('reset role');await db.exec("update qms_private.push_jobs set leased_at=clock_timestamp()-interval '70 seconds' where state='failed'");
     await asStaff();
     const retry=await call<{id:string}[]>('select claim_push_jobs($1) as v',[ticket.id]);
     assert.equal(retry.length,1);assert.equal(retry[0].id,jobs[1].id);

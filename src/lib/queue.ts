@@ -7,6 +7,8 @@ export type QueueEntry = {
   customer_phone?: string | null;
   ticket_opened_at?: string | null;
   ticket_skipped_at?: string | null;
+  call_count?: number;
+  last_call_at?: string | null;
   push_status?: 'pending' | 'accepted' | 'failed' | null;
   pax: number;
   source: QueueSource;

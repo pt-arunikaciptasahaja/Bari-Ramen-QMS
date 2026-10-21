@@ -72,26 +72,26 @@ Set `NEXT_PUBLIC_VAPID_PUBLIC_KEY` and server-only `VAPID_PRIVATE_KEY` in the de
 
 Subscriptions are stored in `qms_private`, scoped to a private ticket capability, limited to three devices, and expire at the next Jakarta midnight. Only supported HTTPS push-service endpoints and valid keys are accepted. Expired subscriptions are cleaned during registration. Guests can disable notifications for their ticket. **Uji notifikasi** sends through the real push transport with a 30-second server-side cooldown.
 
-When staff select **Panggil**, the authenticated `/api/queue/call` route changes status and the database trigger writes an outbox entry per subscribed device. Next.js `after()` dispatches encrypted Web Push after returning to staff, so slow push services do not block the cashier. Claim leases, per-call uniqueness, and a three-attempt cap prevent normal duplicate dispatch. Staff can retry failed or abandoned jobs after 15 seconds. There is no automatic retry worker in this release. Direct SQL/RPC calls still create jobs but require staff retry to dispatch; use the application API for ordinary calls.
+When staff select **Panggil**, the authenticated `/api/queue/call` route changes status and the database trigger writes an outbox entry per subscribed device. Next.js `after()` dispatches encrypted Web Push after returning to staff, so slow push services do not block the cashier. Claim leases, per-call uniqueness, and a three-attempt cap prevent normal duplicate dispatch. Supabase Cron checks the database every 10 seconds independently of staff/TV browsers. It advances calls and dispatches pending pushes through the authenticated `/api/queue/worker` route. A 60-second lease, unique device/call key, fenced acknowledgements, and a maximum of three attempts prevent concurrent duplicate dispatch. Staff can retry after the lease expires.
 
-`accepted` means accepted by the push service, not delivered, read, or heard. A network timeout can produce an uncertain outcome, so delivery is not exactly-once. Notifications use a per-ticket tag/topic and a 60-second TTL. The TV bell still repeats each minute; customer pushes are sent once per call, not each TV reminder. Do not promise sound or exact timing: network access, browser permissions, Force Stop, Focus/Do Not Disturb, and device power management affect delivery. The service worker does not cache private pages or staff sessions.
+`accepted` means accepted by the push service, not delivered, read, or heard. A network timeout can produce an uncertain outcome, so delivery is not exactly-once. Notifications use a per-ticket/per-call tag/topic and a 60-second TTL. Calls are committed at minute 0, then reminders become due at minutes 5 and 10. The TV rings when the server publishes a new call count. At minute 15 unresolved tickets become no-show. Normal scheduling latency is up to 10 seconds, plus database/network delay. After an outage only the current reminder is sent; expired tickets skip directly to no-show without a burst of old calls. Do not promise sound or exact timing: network access, browser permissions, Force Stop, Focus/Do Not Disturb, and device power management affect delivery. The service worker does not cache private pages or staff sessions.
 
 ### WhatsApp follow-up
 
-A gray **Buka WhatsApp** button appears beside the private customer phone number. It unlocks three minutes after `called_at` while the ticket remains called on the current Jakarta service date. This is elapsed time, not proof that TV bells were heard. Missing/invalid phones, waiting tickets, and resolved tickets cannot open a contact link.
+A gray **Buka WhatsApp** button appears beside the private customer phone number. It unlocks after the server confirms `call_count=3` and ten minutes have elapsed since the first `called_at`, while the ticket remains called on the current Jakarta service date. The button stays available until seating or no-show. Missing/invalid phones, waiting tickets, and resolved tickets cannot open a contact link.
 
-After staff confirm the customer consent and message preview, click-to-chat opens a prefilled message using the WhatsApp account signed in on the staff device. Staff must press Send in WhatsApp. The QMS does not claim sent/delivered status or send through an API. Use the restaurant account. No Web Push is included.
+After staff confirm the customer consent and message preview, click-to-chat opens a prefilled message using the WhatsApp account signed in on the staff device. Staff must press Send in WhatsApp. The QMS does not claim sent/delivered status or send through an API. Use the official restaurant account **+62 852-1996-9592**. Click-to-chat targets the customer; the sender is whichever WhatsApp account is signed in on the staff device. A web link cannot force WhatsApp to switch sender accounts.
 
 Group boundaries apply to newly issued tickets. Existing ticket numbers and stored groups are never reassigned. Exact party size remains visible for legacy tickets.
 
 ### TV display
 
 - Keep the TV browser open and device awake. Click **Aktifkan suara** once and check volume.
-- A new call rings immediately. Unresolved calls trigger a reminder every minute, measured from `called_at`.
-- Timer badges become amber after one minute and red after three minutes. Group colors stay fixed: sky for A, teal for B, violet for C. Reminders stop when staff select Selesai or Lewati.
+- A new call rings immediately. Server-confirmed reminders ring at minutes 5 and 10 from the first `called_at`.
+- Timer badges become amber after five minutes and red after ten minutes. Group colors stay fixed: sky for A, teal for B, violet for C. Reminders stop when staff select Selesai/Lewati or the server marks no-show after fifteen minutes.
 - Waiting tickets rotate every 15 seconds. Each page holds up to ten rows, reduced automatically when the display has less vertical space. No waiting ticket is permanently hidden by a fixed slice.
 - Earlier unresolved calls remain visible and rotate four per page when needed.
-- Browser suspension, sleep, muted audio, and lost connectivity can delay notifications. Reminder timers run on the open TV page, not in a background push service.
+- Browser suspension, sleep, muted audio, and lost connectivity can delay notifications. The TV only presents committed server events; closing it does not stop scheduling or customer Web Push.
 
 ### History and recap
 
@@ -107,7 +107,7 @@ npm run typecheck
 npm run build
 ```
 
-Tests cover authorization, atomic numbering, call isolation, private phone data, blocked online registration, analytics, CSV safety, display pagination, and reminder timing.
+Tests cover authorization, atomic numbering, registration/pickup privacy, call isolation, private phone data, analytics, CSV safety, display pagination, reminder boundaries, outage recovery, worker authentication and lease fencing. See `docs/notification-release.md` for the migration audit, deployment order, activation, rollback and device acceptance checks.
 
 ## Contribute
 

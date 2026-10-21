@@ -13,25 +13,25 @@ test('carousel includes every waiting number, wraps, and adapts after queue shri
   assert.equal(rowsForHeight(240),5);
   assert.equal(rowsForHeight(0),1);
 });
-test('warning colors change at one and three minutes',()=>{
+test('warning colors change at five and ten minutes',()=>{
   const called='2026-10-16T01:00:00Z',start=Date.parse(called);
-  assert.equal(warningLevel(called,start+59999),'normal');
-  assert.equal(warningLevel(called,start+60000),'warning');
-  assert.equal(warningLevel(called,start+180000),'urgent');
+  assert.equal(warningLevel(called,start+299999),'normal');
+  assert.equal(warningLevel(called,start+300000),'warning');
+  assert.equal(warningLevel(called,start+600000),'urgent');
 });
-test('reminders ring once per minute, combine overdue calls and stop after completion',()=>{
+test('TV rings only for committed server reminders, once, and stops after resolution',()=>{
   const at='2026-10-16T01:00:00Z',start=Date.parse(at);
-  const row={id:'one',status:'called',called_at:at};
+  const row={id:'one',status:'called',called_at:at,call_count:1};
   let state=collectReminders([row],start,null);
   assert.equal(state.shouldRing,false);
-  state=collectReminders([row],start+59999,state.slots);assert.equal(state.shouldRing,false);
-  state=collectReminders([row],start+60000,state.slots);assert.equal(state.shouldRing,true);
-  state=collectReminders([row],start+61000,state.slots);assert.equal(state.shouldRing,false);
-  state=collectReminders([row],start+120000,state.slots);assert.equal(state.shouldRing,true);
-  state=collectReminders([{...row,status:'seated'}],start+180000,state.slots);assert.equal(state.shouldRing,false);assert.equal(state.slots.size,0);
-  assert.equal(collectReminders([{...row,status:'no-show'}],start+180000,state.slots).shouldRing,false);
-  // A reload establishes a baseline instead of replaying five old bells.
-  assert.equal(collectReminders([row],start+300000,null).shouldRing,false);
+  state=collectReminders([row],start+300000,state.slots);assert.equal(state.shouldRing,false);
+  state=collectReminders([{...row,call_count:2}],start+300000,state.slots);assert.equal(state.shouldRing,true);
+  state=collectReminders([{...row,call_count:2}],start+301000,state.slots);assert.equal(state.shouldRing,false);
+  state=collectReminders([{...row,call_count:3}],start+600000,state.slots);assert.equal(state.shouldRing,true);
+  state=collectReminders([{...row,status:'seated'}],start+900000,state.slots);assert.equal(state.shouldRing,false);
+  assert.equal(state.slots.size,0);
+  assert.equal(collectReminders([{...row,status:'no-show'}],start+900000,state.slots).shouldRing,false);
+  assert.equal(collectReminders([{...row,call_count:3}],start+600000,null).shouldRing,false);
 });
 test('phone normalization accepts local/international numbers and rejects junk',()=>{
   assert.equal(normalizePhone('0812-3456-7890'),'+6281234567890');
