@@ -20,9 +20,13 @@ This release adds:
 
 - `20261021182417_reliable_call_schedule`: portable additive schema/functions, installed in production with scheduler disabled. No historical or active queue rows were backfilled or renumbered.
 - `20261021182430_install_qms_server_scheduler`: platform SQL in `supabase/platform/`; installs `pg_cron`, `pg_net`, and the `qms-server-calls` job every 10 seconds. This job returns immediately while the private activation flag is false. Platform extensions are tested on Supabase; PGlite exercises the portable database logic.
+- `20261021183151_restrict_scheduler_transport`: attempted to revoke extension transport access. Verification showed that `supabase_admin` owns the extension grants and the project `postgres` role cannot revoke them; this migration did **not** remove the default public permissions. Do not treat it as effective hardening.
+- `20261021183521_signed_scheduler_requests`: removes the permanent secret from outgoing HTTP headers. Supabase sends HMAC-SHA256 over a timestamp and random receipt; the Vercel worker rejects signatures older than 30 seconds and the database consumes each receipt once. Identical synthetic-fixture signatures were verified in PostgreSQL and Node. This protects the secret independently of pg_net's extension-owned grants.
 - A new `QMS_WORKER_SECRET` was generated, saved as a Production-only sensitive Vercel variable and in Supabase Vault. Its SHA-256 digest and the fixed production worker URL are stored privately. No existing production secrets were read or copied to preview.
 
 Safety checks immediately before installation: 3 waiting, 0 called, 29 seated, 9 no-show. Scheduling stays disabled until release activation. Neither installation calls the transition processor on active tickets nor sends customer messages.
+
+For a fresh project, apply portable migrations through `reliable_call_schedule`, then the platform installation SQL, then the later transport/signing migrations. The initial platform SQL is a historical installation step; **do not rerun it after the signed transport migration**, since it defines the original transport. Existing production history has all four steps recorded. Never run a blind history repair or replay the initial installation over the signed worker.
 
 ## How it works
 
@@ -83,6 +87,15 @@ update qms_private.scheduler_config set enabled=false where singleton;
 
 Keep additive columns, outbox history and existing migrations. Do not drop tables, reset counters, bulk-change ticket states or repair migration history. Already completed/no-show transitions are not undone automatically.
 
+## Verification recorded in Work
+
+- 73 automated tests passed; TypeScript and production build passed.
+- Production read-only checks confirmed `enabled=false`, a configured secret digest/fixed worker URL, a 10-second Cron job and successful dormant job runs. Queue counts remained 3 waiting, 0 called, 29 seated and 9 no-show.
+- Automatic approval review rejected a proposed live invocation of the transition processor because it can mutate active ticket states. It was not retried; state-transition behavior was tested in isolated PGlite PostgreSQL and production checks stayed read-only.
+- Browser on Vercel preview (demo, no production credentials): manual registration A-001, call, staff/TV Panggilan 1/3, TV audio activation, completion and history. The preview's private ticket/pickup RPCs and self-registration require Supabase and are covered by isolated database regressions, not a claimed full browser E2E pass.
+- Localhost is unreachable from the cloud browser. A short-lived deployment-only share link was used for the protected preview without disabling project protection.
+- A temporary cloud-browser extension metadata error appeared in logs; it came from `chrome-extension://`, not the QMS app.
+
 ## Validation and remaining acceptance
 
 - Automated PostgreSQL regression covers 0/5/10/15-minute boundaries, unchanged first-call anchor, duplicate ticks/claims, staff seating, overdue seating rejection, late scheduler recovery, legacy isolation, private worker authorization and stale-lease acknowledgement rejection.
@@ -90,4 +103,4 @@ Keep additive columns, outbox history and existing migrations. Do not drop table
 - TypeScript and optimized Next.js production build are required.
 - Browser checks must state whether they use demo, fixtures or a real isolated database. Never create fake guests in the live queue to make a screenshot pass.
 - Physical-device acceptance remains necessary: iOS/iPadOS 16.4+ Home Screen install, notification permission denied/re-enabled, background push while locked; Android Chrome permission and OS settings, test push, and Focus/battery restrictions. A cloud desktop browser cannot prove physical mobile delivery.
-- Supabase advisors flag intentional capability-based SECURITY DEFINER APIs and deny-all private tables. Review each new worker API: secret validation is mandatory, private helper EXECUTE is revoked, and direct table access stays denied. Existing leaked-password-protection warning is outside this change.
+- Supabase advisors flag intentional capability-based SECURITY DEFINER APIs and deny-all private tables. Review each new worker API: secret validation is mandatory, private helper EXECUTE is revoked, and direct table access stays denied. Existing leaked-password-protection warning is outside this change. The pg_net `extension_in_public` warning is extension metadata: it is non-relocatable, and HTTP objects live under `net`. Its default grants remain owner-managed; signed requests ensure that permanent credentials never enter the request queue. See [Supabase's extension linter](https://supabase.com/docs/guides/database/database-linter?lint=0014_extension_in_public) and [password protection guidance](https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection).

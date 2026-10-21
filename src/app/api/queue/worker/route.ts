@@ -1,19 +1,17 @@
-import { timingSafeEqual } from 'node:crypto';
+import { validWorkerRequest } from '@/lib/worker-auth';
 import { pushConfigured, sendDevicePush, serverDb, type PushJob } from '@/lib/server-push';
 
 export const runtime = 'nodejs';
 export const maxDuration = 30;
 export async function POST(request: Request) {
   const secret = process.env.QMS_WORKER_SECRET;
-  const provided = request.headers.get('authorization')?.match(/^Bearer ([a-f0-9]{64})$/)?.[1] ?? '';
-  if (!secret || Buffer.byteLength(provided) !== Buffer.byteLength(secret) ||
-    !timingSafeEqual(Buffer.from(provided), Buffer.from(secret))) {
+  if (!validWorkerRequest(request.headers, secret)) {
     return Response.json({ error: 'Unauthorized' }, { status: 401 });
   }
   if (!pushConfigured()) return Response.json({ error: 'Push unavailable' }, { status: 503 });
   try {
     const db = serverDb();
-    const { data, error } = await db.rpc('worker_claim_push', { p_secret: secret });
+    const { data, error } = await db.rpc('worker_claim_request', { p_secret: secret, p_receipt: request.headers.get('x-qms-receipt') });
     if (error) throw error;
     const jobs = (data ?? []) as (PushJob & { lease_token: string })[];
     const results = await Promise.all(jobs.map(async job => {

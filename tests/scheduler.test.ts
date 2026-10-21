@@ -74,6 +74,14 @@ test('server call cycle, outbox, authorization, recovery and terminal-state safe
       await assert.rejects(db.exec('select * from qms_private.scheduler_config'),/permission denied/);
       await db.exec('reset role');
     });
+    await t.test('HTTP receipts expire and are consumed once without exposing permanent credentials',async()=>{
+      const expired=await value<string>("insert into qms_private.worker_requests(expires_at) values(clock_timestamp()-interval '1 second') returning id as v");
+      assert.deepEqual(await value('select worker_claim_request($1,$2) as v',[secret,expired]),[]);
+      const receipt=await value<string>('insert into qms_private.worker_requests default values returning id as v');
+      await value('select worker_claim_request($1,$2) as v',[secret,receipt]);
+      assert.deepEqual(await value('select worker_claim_request($1,$2) as v',[secret,receipt]),[]);
+      await db.exec('set role anon');await assert.rejects(db.exec('select * from qms_private.worker_requests'),/permission denied/);await db.exec('reset role');
+    });
     await t.test('claim is atomic, lease fencing rejects stale acknowledgements and retry is bounded',async()=>{
       const r=await create();
       const jobs=await value<{id:string;ticket_id:string;lease_token:string}[]>('select worker_claim_push($1) as v',[secret]);
