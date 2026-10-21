@@ -1,10 +1,10 @@
 # Bari Ramen QMS
 
-Queue management for guests registering in person at Bari Ramen. Staff create walk-in tickets; the TV displays calls and waiting numbers. IGNATIA remains a separate POS.
+Queue management for guests at Bari Ramen. Guests scan a registration QR and enter their own details, or staff create walk-in tickets for them. The TV displays calls and waiting numbers. IGNATIA remains a separate POS.
 
 ## Summary
 
-Walk-in queues, private customer contact details, staff actions, and a live public display.
+Customer self-registration, manual walk-in registration, private customer contact details, staff actions, and a live public display.
 
 ## Install
 
@@ -21,7 +21,9 @@ Without both Supabase variables, local demo data is shared only between tabs in 
 
 ## Database and access
 
-For a new database, apply all files in `supabase/migrations` in filename order. Existing deployments apply only migrations not already recorded/applied. The latest migration preserves historical online tickets and blocks all new registrations except staff-created walk-ins.
+For a new database, apply all files in `supabase/migrations` in filename order. Existing deployments apply only migrations not already recorded/applied. The customer self-registration migration adds a separate `register_customer` RPC; the existing staff-only `enqueue` RPC remains unchanged. Some earlier deployments recorded equivalent migrations under different timestamps: reconcile their history by migration name/content before using an automatic migration push. Do not replay older migrations on production.
+
+Enable **Anonymous Sign-Ins** in Supabase Auth for customer self-registration. The app creates a guest session on submission; guests do not enter an email/password or receive staff privileges. Review anonymous sign-in rate limits for the restaurant network (many customers may share one public IP). Consider Supabase CAPTCHA protection for a broadly public deployment; CAPTCHA requires corresponding client integration and is not bundled here.
 
 Create a confirmed staff account in Supabase Auth, then add its user ID to `public.staff_members`. The application does not use user-editable metadata to authorize staff.
 
@@ -31,14 +33,26 @@ Phone numbers are optional, normalized to international format, stored only in t
 
 | Route | Purpose |
 | --- | --- |
-| `/` | Information directing guests to register with staff in the restaurant. No self-service form. |
+| `/` | Guest information, self-registration link, and saved ticket access. |
+| `/register` | Customer form: name, party size (1–12), and optional phone. Opens the private ticket directly after registration. |
+| `/register/qr` | Public registration QR poster, with a print button. Display or print this at the entrance/cashier. |
 | `/staff` | Staff login, walk-in registration, phone field, calls, completion, skipped tickets and daily history. |
 | `/pickup#screen=…` | Customer-facing QR pickup display, paired by a staff-generated 12-hour link. No staff login on this device. |
-| `/ticket#t=…` | Private, read-only customer ticket, opened by scanning the pickup display. |
+| `/ticket#t=…` | Private, read-only customer ticket, opened after self-registration or by scanning the pickup display. |
 | `/tv` | Public display with no QR code. |
 | `/q/[id]` | Legacy private tracker, accessible only to the original owning session or staff. No public sharing by phone or ticket UUID alone. |
 
 Queue groups are A (1-2 people), B (3-5), and C (6-12). Numbering follows the Jakarta service date. Staff choose a suitable party for available seating. Completing a ticket means a table was given, not that a transaction was paid or the guest finished dining.
+
+### Customer self-registration
+
+1. On `/staff`, find **Scan untuk daftar antrean** and choose **Buka / cetak QR**. Display the QR at the restaurant or print it from `/register/qr`. The QR opens `/register` on the current website; use the deployed website when printing for customers.
+2. A guest scans it and enters one name and party size for their group, plus an optional phone number. **Ambil nomor antrean** creates a ticket and opens `/ticket#t=…` directly, without a second scan.
+3. Self-registered tickets use source `online` (also used by historical online tickets) and share the same daily A/B/C counters, staff dashboard, TV, history, and optional Web Push flow as manual tickets.
+4. Repeat requests and other tabs in the same guest session reuse the active self-registered ticket. A saved active ticket from staff registration is also reopened by the customer page. This is browser/session-based duplicate prevention, not identity or phone verification; different devices or cleared browser data create different sessions.
+5. Guests needing assistance can still be registered through the unchanged staff form. Staff-issued tickets retain their separate pickup QR flow. Self-registered tickets never enter that pickup queue or flash its scan acknowledgement.
+
+Registration reserves a place in today's queue, not a table at a scheduled time. The static QR/link can be shared and does not prove physical presence. Customer self-registration and private ticket links require Supabase; local demo mode continues to support manual staff queues and displays a clear error if the customer form is submitted.
 
 ### Customer ticket pickup
 

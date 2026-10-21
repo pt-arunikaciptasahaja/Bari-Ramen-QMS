@@ -24,7 +24,7 @@ export default function Home() {
           Antrean Bari Ramen
         </h1>
         <p className="mt-2 text-sm leading-6 text-slate-500">
-          Silakan daftar melalui staf di kasir untuk mendapatkan nomor antrean.
+          Daftar antrean dari HP Anda atau minta bantuan staf di kasir.
         </p>
         <div
           className="my-5 rounded-lg bg-slate-100/50 px-3 py-3"
@@ -49,10 +49,13 @@ export default function Home() {
           )}
         </div>
         <p className="text-sm leading-6 text-slate-600">
-          Setelah terdaftar, scan QR pada layar pengambilan tiket.
+          Daftar mandiri untuk langsung membuka tiket di HP. Jika didaftarkan staf, scan QR pada layar pengambilan tiket.
           Pantau giliran dari HP dan aktifkan notifikasi agar tidak melewatkan panggilan.
         </p>
-        <Link href="/ticket" className="mt-4 inline-flex min-h-11 items-center rounded-md bg-slate-100 px-4 text-sm font-semibold">Buka tiket saya</Link>
+        <div className="mt-4 flex flex-wrap gap-3">
+          <Link href="/register" className="inline-flex min-h-11 items-center rounded-md bg-slate-900 px-4 text-sm font-semibold text-white">Daftar antrean</Link>
+          <Link href="/ticket" className="inline-flex min-h-11 items-center rounded-md bg-slate-100 px-4 text-sm font-semibold">Buka tiket saya</Link>
+        </div>
         <p className="mt-5 text-xs leading-5 text-slate-500">
           Tiket berlaku pada hari pendaftaran. Tetap berada di sekitar restoran agar Anda dapat segera kembali saat dipanggil.
         </p>

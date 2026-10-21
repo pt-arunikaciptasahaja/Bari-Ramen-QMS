@@ -103,7 +103,7 @@ export default function TVPage() {
             <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-widest opacity-70"><BellRing size={17} />Sedang dipanggil</p>
             <h1 aria-live="polite" className={`my-3 whitespace-nowrap font-mono text-[clamp(2rem,9vw,8rem)] font-semibold leading-none tabular-nums ${current ? queueGroups[current.group_code].number : "text-white"}`}>{loading ? "…" : current?.queue_number ?? "-"}</h1>
             {current && <div className="mb-3"><GroupBadge group={current.group_code} pax={current.pax} dark /></div>}
-            <p className="text-sm opacity-80 lg:text-lg">{current ? `Untuk ${current.pax} orang. Silakan menuju kasir.` : "Pendaftaran antrean melalui staf di restoran."}</p>
+            <p className="text-sm opacity-80 lg:text-lg">{current ? `Untuk ${current.pax} orang. Silakan menuju kasir.` : "Scan QR pendaftaran di restoran atau minta bantuan staf."}</p>
             {current && <p className={`mt-3 rounded-lg border px-3 py-2 text-sm ${urgencyClasses[level]}`}><span className="font-mono tabular-nums">{duration(current.called_at, now)}</span> sejak dipanggil{level !== "normal" ? " · Menunggu kedatangan tamu" : ""}</p>}
           </div>
           {previousCalls.length > 0 && <section aria-labelledby="previous-calls-title" className="shrink-0 rounded-xl bg-white/5 p-3">

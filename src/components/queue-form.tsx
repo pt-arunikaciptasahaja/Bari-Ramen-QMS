@@ -5,11 +5,13 @@ import { enqueue } from "@/lib/api";
 import { groupFor, type QueueEntry } from "@/lib/queue";
 import { GroupBadge } from "./group-badge";
 import { Button } from "./ui/button";
+type QueueFormProps =
+  | { onAdded: (entry: QueueEntry) => void; onRegister?: never }
+  | { onAdded?: never; onRegister: (name: string, pax: number, requestId: string, phone: string) => Promise<void> };
 export function QueueForm({
   onAdded,
-}: {
-  onAdded: (entry: QueueEntry) => void;
-}) {
+  onRegister,
+}: QueueFormProps) {
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [pax, setPax] = useState("2");
@@ -29,6 +31,10 @@ export function QueueForm({
     setError("");
     try {
       requestId.current ??= crypto.randomUUID();
+      if (onRegister) {
+        await onRegister(name, Number(pax), requestId.current, phone);
+        return;
+      }
       const entry = await enqueue(
         name,
         Number(pax),
@@ -36,7 +42,7 @@ export function QueueForm({
         requestId.current,
         phone,
       );
-      onAdded(entry);
+      onAdded?.(entry);
       setName("");
       setPhone("");
       requestId.current = undefined;
@@ -54,7 +60,7 @@ export function QueueForm({
   return (
     <form
       onSubmit={submit}
-      className="grid gap-3 sm:grid-cols-2 sm:items-end xl:grid-cols-[1fr_1fr_150px_auto]"
+      className={onRegister ? "grid gap-4" : "grid gap-3 sm:grid-cols-2 sm:items-end xl:grid-cols-[1fr_1fr_150px_auto]"}
     >
       <div>
         <label
@@ -135,11 +141,11 @@ export function QueueForm({
         ) : (
           <Plus size={20} />
         )}
-        {busy ? "Menyimpan…" : "Tambah antrean"}
+        {busy ? "Menyimpan…" : onRegister ? "Ambil nomor antrean" : "Tambah antrean"}
       </Button>
       <div className="col-span-full flex flex-wrap items-center justify-between gap-2 text-xs text-slate-500">
         <span>Grup tamu: <GroupBadge group={groupFor(Number(pax))} /></span>
-        <span>Minta persetujuan tamu sebelum menghubungi melalui WhatsApp.</span>
+        <span>{onRegister ? "Nomor telepon bersifat opsional. Pesan WhatsApp tidak dikirim otomatis." : "Minta persetujuan tamu sebelum menghubungi melalui WhatsApp."}</span>
       </div>
       {error && (
         <p role="alert" className="text-sm text-red-700 md:col-span-full">

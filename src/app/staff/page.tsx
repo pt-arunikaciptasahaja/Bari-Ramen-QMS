@@ -17,6 +17,7 @@ import {
 import { Brand } from "@/components/brand";
 import { DemoNotice } from "@/components/demo-notice";
 import { QueueForm } from "@/components/queue-form";
+import { RegistrationQr } from "@/components/registration-qr";
 import { PickupScreenSetup, TicketAccessTools } from "@/components/ticket-handoff";
 import { QueueHistory } from "@/components/queue-history";
 import { GroupBadge } from "@/components/group-badge";
@@ -221,6 +222,7 @@ export default function StaffPage() {
                 }}
               />
             </Card>
+            <RegistrationQr />
             <PickupScreenSetup rows={active} onChanged={() => void queue.refresh()} />
             <div aria-live="polite" className="mb-3 text-sm text-emerald-800">
               {message}
