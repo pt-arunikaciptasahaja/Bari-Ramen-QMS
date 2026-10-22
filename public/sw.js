@@ -8,7 +8,7 @@ self.addEventListener('push', event => {
   const url = typeof data.url === 'string' && /^\/ticket#t=[a-f0-9]{64}$/.test(data.url) ? data.url : '/ticket';
   event.waitUntil(self.registration.showNotification(stale ? 'Periksa antrean Bari Ramen' : data.title || 'Bari Ramen', {
     body: stale ? 'Status antrean mungkin sudah berubah. Buka tiket untuk melihat informasi terbaru.' : data.body || 'Ada pembaruan untuk antrean Anda. Silakan buka tiket.',
-    icon: '/pwa-icon', badge: '/pwa-icon', tag: data.tag || 'bari-ticket',
+    icon: '/pwa-icon?v=bari-logo-1', badge: '/pwa-icon?v=bari-logo-1', tag: data.tag || 'bari-ticket',
     data: { url }, vibrate: [180, 80, 180],
   }));
 });

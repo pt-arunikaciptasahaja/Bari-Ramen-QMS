@@ -27,6 +27,36 @@ test('web-push produces encrypted payload and VAPID authentication without netwo
   assert.ok(request.body && request.body.length>20);
   assert.equal(request.body?.includes(Buffer.from('Test')),false);
 });
+test('customer call notifications use the requested copy and each actual queue number', async (t) => {
+  const oldPublic = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+  const oldPrivate = process.env.VAPID_PRIVATE_KEY;
+  process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY = 'fixture-public';
+  process.env.VAPID_PRIVATE_KEY = 'fixture-private';
+  const messages: {title: string; body: string; tag: string}[] = [];
+  t.mock.method(webpush, 'sendNotification', async (_subscription: unknown, payload: string | Buffer) => {
+    messages.push(JSON.parse(payload.toString()));
+    return {statusCode: 201, body: '', headers: {}};
+  });
+  try {
+    const {sendDevicePush} = await import('../src/lib/server-push');
+    const job = {id:'fixture',subscription,token:'a'.repeat(64),ticket_id:'10000000-0000-4000-8000-000000000001',queue_number:'C-001'};
+    for (const call_count of [1,2,3]) await sendDevicePush({...job,call_count});
+    for (const message of messages) {
+      assert.equal(message.title, 'Bari Ramen is calling! Thank you for patiently waiting.');
+      assert.equal(message.body, 'No. C-001 Silahkan datang dan pesan makanan di kasir.');
+    }
+    assert.equal(new Set(messages.map(message=>message.tag)).size,3);
+    await sendDevicePush({...job,queue_number:'A-042'});
+    assert.equal(messages.at(-1)?.body,'No. A-042 Silahkan datang dan pesan makanan di kasir.');
+    await sendDevicePush(job,true);
+    assert.match(messages.at(-1)?.body ?? '',/notifikasi uji/);
+  } finally {
+    if (oldPublic === undefined) delete process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+    else process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY = oldPublic;
+    if (oldPrivate === undefined) delete process.env.VAPID_PRIVATE_KEY;
+    else process.env.VAPID_PRIVATE_KEY = oldPrivate;
+  }
+});
 test('service worker displays background pushes and safely opens the private ticket',async()=>{
   const handlers:Record<string,(event:unknown)=>void>={};
   const notifications:unknown[][]=[];const opened:string[]=[];

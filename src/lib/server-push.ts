@@ -28,8 +28,8 @@ export async function sendDevicePush(job: PushJob, test = false) {
   if (!pushConfigured()) throw new Error('Notifikasi belum tersedia.');
   const subscription = validatePushSubscription(job.subscription);
   return webpush.sendNotification(subscription, JSON.stringify({
-    title: test ? 'Notifikasi Bari Ramen aktif' : 'Giliran Anda di Bari Ramen',
-    body: test ? 'Ini notifikasi uji. Kami akan memberi tahu saat nomor antrean Anda dipanggil.' : `Panggilan ${job.call_count ?? 1}/3 untuk ${job.queue_number}. Silakan kembali ke kasir dan tunjukkan tiket Anda.`,
+    title: test ? 'Notifikasi Bari Ramen aktif' : 'Bari Ramen is calling! Thank you for patiently waiting.',
+    body: test ? 'Ini notifikasi uji. Kami akan memberi tahu saat nomor antrean Anda dipanggil.' : `No. ${job.queue_number} Silahkan datang dan pesan makanan di kasir.`,
     url: `/ticket#t=${job.token}`, tag: `bari-${job.ticket_id}-${job.call_count ?? 1}`, expiresAt: Date.now() + 60000,
   }), { TTL: 60, urgency: 'high', timeout: 5000, topic: `q${job.ticket_id.replaceAll('-', '').slice(0, 20)}c${job.call_count ?? 1}`,
     vapidDetails: { subject: 'https://bari-ramen-qms.vercel.app', publicKey: process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!, privateKey: process.env.VAPID_PRIVATE_KEY! } });
