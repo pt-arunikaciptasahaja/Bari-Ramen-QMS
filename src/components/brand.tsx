@@ -28,7 +28,7 @@ export function Brand({
       </span>
       <span className="min-w-0">
         <span className={`block whitespace-nowrap font-bold tracking-[-.04em] ${size === "large" ? "text-xl lg:text-2xl" : "text-lg"}`}>BARI-RAMEN</span>
-        <span className={`mt-0.5 block text-[10px] font-medium tracking-[.08em] sm:text-xs ${dark ? "text-white/70" : "text-stone-600"}`}>{subtitle}</span>
+        <span className={`mt-0.5 block text-[10px] font-medium tracking-[.08em] sm:text-xs ${dark ? "text-white/70" : "text-slate-600"}`}><span lang="ja" className={dark ? "text-white/90" : "text-brand"}>バリラーメン</span><span aria-hidden="true"> · </span>{subtitle}</span>
       </span>
     </Link>
   );

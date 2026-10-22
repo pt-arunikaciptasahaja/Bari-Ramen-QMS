@@ -14,13 +14,13 @@ export default function Home() {
   return (
     <div className="flex min-h-dvh flex-col bg-paper">
       <DemoNotice />
-      <header className="border-b border-stone-200 bg-white px-4 py-4">
+      <header className="border-b border-slate-200 bg-white px-4 py-4">
         <div className="mx-auto max-w-5xl">
           <Brand />
         </div>
       </header>
       <main className="mx-auto w-full max-w-md flex-1 px-4 py-6 sm:py-8">
-        <p className="eyebrow mb-3 text-terracotta">Selamat datang di Bari Ramen</p>
+        <p className="eyebrow mb-3 text-cobalt">Selamat datang di Bari Ramen</p>
         <h1 className="text-2xl font-semibold tracking-tight">
           Semangkuk ramen, dimulai dari sini.
         </h1>
@@ -28,7 +28,7 @@ export default function Home() {
           Ambil nomor antrean, lalu nikmati waktu Anda sambil menunggu. Staf kami siap membantu di kasir.
         </p>
         <div
-          className="my-5 rounded-lg border border-stone-200 bg-white px-3 py-3"
+          className="my-5 rounded-lg border border-slate-200 bg-white px-3 py-3"
           role="status"
         >
           <p className="text-sm">
@@ -55,7 +55,7 @@ export default function Home() {
         </p>
         <div className="mt-4 flex flex-wrap gap-3">
           <Link href="/register" className="inline-flex min-h-11 items-center rounded-md bg-brand px-4 text-sm font-semibold text-white">Daftar antrean</Link>
-          <Link href="/ticket" className="inline-flex min-h-11 items-center rounded-md border border-stone-300 bg-white px-4 text-sm font-semibold">Buka tiket saya</Link>
+          <Link href="/ticket" className="inline-flex min-h-11 items-center rounded-md border border-slate-300 bg-white px-4 text-sm font-semibold">Buka tiket saya</Link>
         </div>
         <p className="mt-5 text-xs leading-5 text-slate-500">
           Tiket berlaku pada hari pendaftaran. Tetap berada di sekitar restoran agar Anda dapat segera kembali saat dipanggil.
