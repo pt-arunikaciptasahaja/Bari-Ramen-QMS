@@ -57,7 +57,7 @@ export default function CustomerTicketPage() {
       <h1 className="text-xl font-semibold">{called ? 'Giliran Anda sudah tiba' : 'Tiket antrean Anda'}</h1>
       {loading && <p role="status" className="mt-5 text-sm text-slate-500">Membuka tiket…</p>}
       {entry && <>
-        <section className="mt-4 overflow-hidden rounded-xl bg-white">
+        <section className="mt-4 overflow-hidden rounded-xl border border-stone-200 bg-white shadow-sm">
           <div className="p-5 text-center">
             <p className="text-xs text-slate-500">Nomor antrean</p>
             <p className={`mx-auto my-3 w-fit rounded-lg px-4 py-2 font-mono text-5xl font-semibold tabular-nums ${queueGroups[entry.group_code].light}`}>{entry.queue_number}</p>
@@ -69,7 +69,7 @@ export default function CustomerTicketPage() {
             {called && <p role="status" className="mt-3 text-lg font-semibold text-amber-900">Panggilan {entry.call_count ?? 1}/3</p>}
             {called && entry.called_at && <p className="mt-2 text-xs leading-5 text-slate-500">Panggilan pertama pukul <span className="font-mono tabular-nums">{new Date(entry.called_at).toLocaleTimeString('id-ID',{timeZone:'Asia/Jakarta',hour:'2-digit',minute:'2-digit'})}</span> WIB. Silakan segera menuju kasir dan tunjukkan tiket ini kepada staf.</p>}
           </div>
-          {entry.status === 'waiting' && !expired && <div className="bg-slate-100/70 px-5 py-4">
+          {entry.status === 'waiting' && !expired && <div className="bg-paper px-5 py-4">
             <p aria-live="polite" className="text-sm"><span className="font-mono font-semibold tabular-nums">{board.loading || board.error ? '…' : aheadCount(board.rows, {...entry,source:'walk-in'})}</span> rombongan dalam kelompok {entry.group_code} di depan Anda</p>
             <p className="mt-2 text-xs leading-5 text-slate-500">Urutan panggilan mengikuti ketersediaan meja sesuai jumlah orang dalam rombongan Anda.</p>
           </div>}

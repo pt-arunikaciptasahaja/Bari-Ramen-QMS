@@ -8,18 +8,18 @@
 }
 body {
   margin: 0;
-  background: #f8fafc;
-  color: #0f172a;
+  background: #faf7ef;
+  color: #292722;
   font-family: Arial, Helvetica, sans-serif;
 }
 ::selection {
-  background: #e5e5e5;
+  background: #f2d8c6;
 }
 .field {
   width: 100%;
   height: 48px;
   border-radius: 6px;
-  border: 1px solid #cbd5e1;
+  border: 1px solid #d6d1c7;
   background: #fff;
   padding: 0 12px;
   font-size: 16px;
@@ -30,8 +30,8 @@ body {
 }
 .field:focus,
 .field:focus-within {
-  border-color: #64748b;
-  box-shadow: 0 0 0 2px #64748b20;
+  border-color: #a33f27;
+  box-shadow: 0 0 0 2px #a33f2720;
 }
 .field:disabled {
   opacity: 0.6;
@@ -48,10 +48,10 @@ body {
 @keyframes call-flash {
   0%,
   100% {
-    background: #181818;
+    background: #fffdf8;
   }
   50% {
-    background: #383838;
+    background: #fce3c7;
   }
 }
 @media (prefers-reduced-motion: reduce) {
@@ -61,4 +61,30 @@ body {
     animation: none !important;
     transition: none !important;
   }
+}
+
+/* The original transparent logo has generous margins. Frame it with CSS,
+   preserving the supplied artwork and its proportions. */
+.brand-emblem {
+  position: relative;
+  display: block;
+  width: 48px;
+  height: 48px;
+  flex: 0 0 auto;
+  overflow: hidden;
+  border-radius: 50%;
+  background: #22211f;
+}
+.brand-emblem-large {
+  width: 64px;
+  height: 64px;
+}
+.brand-emblem-image {
+  position: absolute;
+  width: 200%;
+  height: 200%;
+  max-width: none;
+  left: -50%;
+  top: -50%;
+  object-fit: contain;
 }

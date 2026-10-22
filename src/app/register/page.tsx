@@ -49,9 +49,10 @@ export default function RegisterPage() {
     <DemoNotice />
     <header className="mx-auto max-w-md px-4 py-5"><Brand /></header>
     <main className="mx-auto max-w-md px-4 pb-8">
-      <h1 className="text-2xl font-semibold tracking-tight">Daftar antrean</h1>
-      <p className="mt-2 text-sm leading-6 text-slate-600">Cukup satu pendaftaran untuk setiap rombongan. Setelah berhasil, tiket antrean akan terbuka di HP Anda.</p>
-      <section aria-label="Formulir pendaftaran antrean" className="mt-5 rounded-xl bg-white p-5">
+      <p className="eyebrow mb-2 text-terracotta">Sebelum menikmati ramen</p>
+      <h1 className="text-2xl font-semibold tracking-tight">Ambil nomor antrean Anda</h1>
+      <p className="mt-2 text-sm leading-6 text-slate-600">Senang menyambut Anda di Bari Ramen. Cukup satu pendaftaran untuk setiap rombongan; tiket akan langsung terbuka di HP Anda.</p>
+      <section aria-label="Formulir pendaftaran antrean" className="mt-5 rounded-xl border border-stone-200 bg-white p-5 shadow-sm">
         {checking ? <p role="status" className="text-sm text-slate-500">Memeriksa tiket Anda…</p> : <QueueForm onRegister={submit} />}
       </section>
       <p className="mt-4 text-xs leading-6 text-slate-500">Tiket berlaku untuk antrean hari ini. Pendaftaran belum menjamin meja tersedia pada jam tertentu. Urutan panggilan mengikuti ketersediaan meja sesuai jumlah orang. Tetap berada di sekitar restoran.</p>

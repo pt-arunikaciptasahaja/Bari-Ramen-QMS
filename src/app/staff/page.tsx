@@ -135,11 +135,8 @@ export default function StaffPage() {
       <DemoNotice />
       <header className="border-b border-slate-200 bg-white">
         <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-5 px-5 py-5 sm:px-8">
-          <Brand />
+          <Brand subtitle="Dashboard staf" />
           <div className="flex items-center gap-3">
-            <span className="hidden rounded-lg bg-paper px-3 py-2 text-xs text-slate-500 sm:block">
-              DASHBOARD STAF
-            </span>
             <Button asChild variant="outline">
               <Link href="/tv" target="_blank" rel="noreferrer">
                 <ExternalLink size={16} />
