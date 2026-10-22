@@ -83,7 +83,37 @@ export async function updateDemo(id: string, status: QueueStatus) {
     )
       throw new Error("Status sudah berubah. Periksa antrean terbaru.");
     entry.status = status;
-    if (status === "called") entry.called_at = new Date().toISOString();
+    if (status === "called") { entry.called_at = new Date().toISOString(); entry.last_call_at = entry.called_at; entry.call_count = 1; }
     write(rows);
+  });
+}
+
+// Demo uses a single localStorage write for both the ticket and its audit trail.
+type DemoEdit = import('./queue-edits').QueueEdit & { request_id: string };
+type EditedDemoEntry = QueueEntry & { recovery_log?: DemoEdit[] };
+export function demoEditHistory(id: string) {
+  return [...((readDemo().find(row => row.id === id) as EditedDemoEntry | undefined)?.recovery_log ?? [])].reverse();
+}
+export async function restoreDemo(snapshot: QueueEntry, reason: import('./queue-edits').RecoveryReason, note: string, requestId: string) {
+  return locked(() => {
+    const rows = readDemo() as EditedDemoEntry[];
+    const entry = rows.find(row => row.id === snapshot.id);
+    if (!entry || entry.service_date !== serviceDate()) throw new Error('Tiket hanya dapat dipulihkan pada hari pendaftaran.');
+    const prior = rows.flatMap(row => (row.recovery_log ?? []).map(edit => ({edit,ticket_id:row.id}))).find(({edit}) => edit.request_id === requestId);
+    if (prior) {
+      if (prior.ticket_id !== entry.id || prior.edit.reason !== reason || prior.edit.note !== note) throw new Error('Identitas permintaan tidak valid.');
+      return entry;
+    }
+    if (entry.status !== snapshot.status || (entry.edit_count ?? 0) !== (snapshot.edit_count ?? 0) || !['called','seated','no-show'].includes(entry.status)) {
+      throw new Error('Status tiket sudah berubah. Muat ulang daftar sebelum mencoba lagi.');
+    }
+    if (reason === 'late-arrival' && entry.status !== 'no-show') throw new Error('Alasan datang terlambat hanya berlaku untuk antrean yang dilewati.');
+    const timestamp = new Date().toISOString(), count = (entry.edit_count ?? 0) + 1;
+    const edit: DemoEdit = { id: crypto.randomUUID(), actor_id: 'demo', request_id: requestId,
+      created_at: timestamp, from_status: entry.status, to_status: 'waiting', reason, note, edit_number: count };
+    entry.recovery_log = [...(entry.recovery_log ?? []),edit];
+    Object.assign(entry,{status:'waiting',called_at:null,last_call_at:null,call_count:0,push_status:null,edit_count:count,last_edited_at:timestamp});
+    write(rows);
+    return entry;
   });
 }

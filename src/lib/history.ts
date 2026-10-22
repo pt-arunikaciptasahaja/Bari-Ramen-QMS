@@ -37,13 +37,14 @@ export function csvCell(value: string | number) {
 }
 
 export function historyCsv(rows: QueueEntry[]) {
-  const headers = ["Tanggal layanan", "Nomor", "Nama Tamu", "Telepon / WhatsApp", "Jumlah Orang", "Asal", "Status", "Daftar (ISO UTC)", "Dipanggil (ISO UTC)", "Tunggu sampai dipanggil (menit)"];
+  const headers = ["Tanggal layanan", "Nomor", "Nama tamu", "Telepon / WhatsApp", "Jumlah orang", "Pendaftaran", "Status", "Daftar (ISO UTC)", "Panggilan pertama (ISO UTC)", "Tunggu sampai dipanggil (menit)", "Jumlah pemulihan", "Terakhir diubah (ISO UTC)"];
   const records = rows.map((r) => [
     r.service_date, r.queue_number, r.customer_name, r.customer_phone ?? "", r.pax,
-    r.source === "online" ? "QR Online" : "Walk-in",
+    r.source === "online" ? "Daftar mandiri" : "Didaftarkan staf",
     r.status === "seated" ? "Meja diberikan" : "Dilewati",
     r.created_at, r.called_at ?? "",
     r.called_at ? Math.max(0, Math.round((Date.parse(r.called_at) - Date.parse(r.created_at)) / 60000)) : "",
+    r.edit_count ?? 0, r.last_edited_at ?? "",
   ]);
   return "\uFEFF" + [headers, ...records].map((row) => row.map(csvCell).join(",")).join("\r\n");
 }

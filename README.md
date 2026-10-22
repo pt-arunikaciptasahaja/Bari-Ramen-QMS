@@ -116,3 +116,7 @@ Keep staff flows concise, use Indonesian labels, preserve public/private data bo
 ## License
 
 Private client project. No open-source license has been granted.
+
+### Correcting staff mistakes and late arrivals
+
+Staff can choose **Batalkan panggilan** for an active call or **Kembalikan ke antrean** from today's history. A reason is required. The same ticket returns to waiting and receives a **Diedit** badge with a private audit trail; its ID and queue number stay the same. The next call starts a fresh call cycle. See `docs/staff-recovery.md` for permissions, retry behavior, old-message limitations and validation.

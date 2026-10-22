@@ -8,6 +8,7 @@ import { useQueue } from '@/hooks/use-queue';
 import { aheadCount, serviceDate, statusLabel } from '@/lib/queue';
 import { fetchCustomerTicket, fragmentToken, validTicketToken, type CustomerTicket } from '@/lib/tickets';
 import { queueGroups } from '@/lib/groups';
+import { CALL_POLICY_COPY, customerStatusCopy } from '@/lib/customer-copy';
 import { PushPermission } from '@/components/push-permission';
 
 export default function CustomerTicketPage() {
@@ -26,7 +27,7 @@ export default function CustomerTicketPage() {
   useEffect(() => {
     let token = fragmentToken('t');
     if (!token) { try { token = localStorage.getItem('bari-customer-ticket-v1') ?? ''; } catch { /* Storage is optional. */ } }
-    if (!validTicketToken(token)) { setError('Daftar melalui QR di restoran, atau scan QR tiket setelah didaftarkan staf.'); setLoading(false); return; }
+    if (!validTicketToken(token)) { setError('Pindai kode QR pendaftaran di restoran, atau kode QR tiket setelah Anda didaftarkan staf.'); setLoading(false); return; }
     let alive = true, busy = false, opened = false;
     const load = async () => {
       if (busy) return;
@@ -66,14 +67,16 @@ export default function CustomerTicketPage() {
               {expired ? 'Antrean sudah berakhir' : statusLabel[entry.status]}
             </p>
             {called && <p role="status" className="mt-3 text-lg font-semibold text-amber-900">Panggilan {entry.call_count ?? 1}/3</p>}
-            {called && entry.called_at && <p className="mt-2 text-xs leading-5 text-slate-500">Dipanggil pukul <span className="font-mono tabular-nums">{new Date(entry.called_at).toLocaleTimeString('id-ID',{timeZone:'Asia/Jakarta',hour:'2-digit',minute:'2-digit'})}</span> WIB. Silakan segera ke kasir dan tunjukkan tiket ini agar staf dapat memberikan meja.</p>}
+            {called && entry.called_at && <p className="mt-2 text-xs leading-5 text-slate-500">Panggilan pertama pukul <span className="font-mono tabular-nums">{new Date(entry.called_at).toLocaleTimeString('id-ID',{timeZone:'Asia/Jakarta',hour:'2-digit',minute:'2-digit'})}</span> WIB. Silakan segera menuju kasir dan tunjukkan tiket ini kepada staf.</p>}
           </div>
           {entry.status === 'waiting' && !expired && <div className="bg-slate-100/70 px-5 py-4">
-            <p aria-live="polite" className="text-sm"><span className="font-mono font-semibold tabular-nums">{board.loading || board.error ? '…' : aheadCount(board.rows, {...entry,source:'walk-in'})}</span> antrean grup {entry.group_code} di depan Anda</p>
-            <p className="mt-2 text-xs leading-5 text-slate-500">Urutan panggilan mengikuti ketersediaan meja untuk jumlah orang dalam grup Anda.</p>
+            <p aria-live="polite" className="text-sm"><span className="font-mono font-semibold tabular-nums">{board.loading || board.error ? '…' : aheadCount(board.rows, {...entry,source:'walk-in'})}</span> rombongan dalam kelompok {entry.group_code} di depan Anda</p>
+            <p className="mt-2 text-xs leading-5 text-slate-500">Urutan panggilan mengikuti ketersediaan meja sesuai jumlah orang dalam rombongan Anda.</p>
           </div>}
         </section>
-        <p className="mt-4 text-sm leading-6 text-slate-600">{entry.status === 'seated' ? 'Meja Anda sudah diberikan. Selamat menikmati hidangan di Bari Ramen.' : entry.status === 'no-show' ? 'Antrean Anda telah dilewati. Silakan temui staf jika masih ingin menunggu meja.' : called ? 'Kami menunggu Anda di kasir. Panggilan diulang pada menit ke-5 dan ke-10. Jika belum mendapat meja pada menit ke-15 sejak panggilan pertama, antrean otomatis dilewati. Segera lapor kepada staf saat tiba.' : 'Silakan menunggu di sekitar restoran dan aktifkan notifikasi. Saat dipanggil, segera menuju kasir. Batas kedatangan 15 menit sejak panggilan pertama.'}</p>
+        {called && (entry.call_count ?? 1) >= 3 && <p className="mt-4 rounded-lg bg-amber-50 p-3 text-sm font-semibold text-amber-900">Ini panggilan terakhir untuk nomor Anda. Silakan segera menuju kasir.</p>}
+        <p className="mt-4 text-sm leading-6 text-slate-600">{customerStatusCopy(entry.status, expired)}</p>
+        {!expired && ['waiting','called'].includes(entry.status) && <p className="mt-3 text-xs leading-5 text-slate-500">{CALL_POLICY_COPY}</p>}
         <PushPermission ticketToken={ticketToken} ended={expired || entry.status==='seated' || entry.status==='no-show'} />
         <p className="mt-3 text-xs leading-5 text-slate-500">Simpan tautan tiket ini dan tetap berada di sekitar restoran. Anda dapat membukanya kembali selama antrean hari ini.</p>
         <p className="mt-2 text-xs text-slate-500">{board.connection} · Berlaku untuk hari ini</p>

@@ -15,7 +15,7 @@ export function whatsappState(entry: ContactEntry, now: number) {
 }
 
 export function whatsappMessage(entry: ContactEntry) {
-  return `Halo Kak ${entry.customer_name}, ini Bari Ramen (${BARI_WHATSAPP}). Nomor Anda sudah dipanggil 3 kali. Silakan kembali ke kasir dan tunjukkan nomor antrean ${entry.queue_number}. Terima kasih.`;
+  return `Halo ${entry.customer_name}, kami dari Bari Ramen (${BARI_WHATSAPP}). Nomor antrean ${entry.queue_number} telah dipanggil 3 kali. Silakan segera menuju kasir dan tunjukkan tiket Anda. Jika sudah berada di restoran, mohon lapor kepada staf. Terima kasih.`;
 }
 
 export function whatsappLink(entry: ContactEntry, now: number) {

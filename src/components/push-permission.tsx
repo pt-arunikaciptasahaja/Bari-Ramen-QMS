@@ -78,14 +78,14 @@ export function PushPermission({ticketToken,ended}:{ticketToken:string;ended:boo
       if(!sub)throw new Error('Perangkat belum terdaftar. Aktifkan notifikasi kembali.');
       await pushRequest({action,ticketToken,endpoint:sub.endpoint});
       if(action==='unsubscribe'){setActive(false);setMessage('Notifikasi untuk antrean ini dinonaktifkan. Anda tetap bisa memantau tiket.');}
-      else setMessage('Notifikasi uji diajukan. Periksa pusat notifikasi dan pengaturan suara HP Anda.');
+      else setMessage('Permintaan notifikasi uji berhasil diproses. Periksa pusat notifikasi HP Anda. Jika belum muncul, buka panduan di bawah.');
     }catch(e){setMessage(e instanceof Error ? e.message : 'Belum berhasil. Silakan coba lagi.');}
     finally{lock.current=false;setBusy(false);}
   }
   if(ended)return null;
   return <section aria-labelledby="notification-title" className="mt-4 rounded-xl bg-white p-4">
-    <h2 id="notification-title" className="flex items-center gap-2 text-sm font-semibold"><Bell size={17}/>Pemberitahuan giliran</h2>
-    <p className="mt-2 text-sm leading-6 text-slate-600">Aktifkan pemberitahuan agar tidak melewatkan giliran Anda. Izin ini hanya digunakan untuk notifikasi antrean; tetap pantau tiket jika notifikasi belum masuk.</p>
+    <h2 id="notification-title" className="flex items-center gap-2 text-sm font-semibold"><Bell size={17}/>Notifikasi giliran</h2>
+    <p className="mt-2 text-sm leading-6 text-slate-600">Aktifkan pemberitahuan agar tidak melewatkan giliran Anda. Notifikasi digunakan untuk memberi tahu giliran antrean Anda. Tetap pantau tiket selama menunggu.</p>
     {needsInstall ? <div className="mt-3 rounded-lg bg-slate-100 p-3 text-xs leading-6 text-slate-600"><p className="font-semibold">Menggunakan iPhone atau iPad?</p><p className="whitespace-pre-line">1. Buka tautan tiket ini di Safari (bukan browser dalam WhatsApp atau Instagram).
 2. Ketuk Bagikan → Tambahkan ke Layar Utama → Tambah.
 3. Buka ikon Bari Ramen dari Layar Utama. Ketuk Aktifkan notifikasi → Izinkan.
@@ -93,8 +93,8 @@ export function PushPermission({ticketToken,ended}:{ticketToken:string;ended:boo
       : supported===false ? <p className="mt-3 text-xs leading-5 text-amber-800">Browser ini belum mendukung notifikasi. Coba buka tautan tiket di Chrome atau Safari, bukan dari browser di dalam aplikasi.</p>
       : !key ? <p className="mt-3 text-xs text-slate-500">Notifikasi belum tersedia. Silakan pantau tiket atau hubungi staf.</p>
       : active ? <><p className="mt-3 flex items-center gap-2 text-sm font-medium text-emerald-800"><Check size={16}/>Notifikasi aktif di perangkat ini</p><div className="mt-3 flex flex-wrap gap-2"><Button disabled={busy} variant="outline" onClick={()=>void change('test')}>Uji notifikasi</Button><Button disabled={busy} variant="ghost" onClick={()=>void change('unsubscribe')}><BellOff size={15}/>Nonaktifkan</Button></div></>
-      : <><Button disabled={busy||supported===null||permission==='denied'} className="mt-3 w-full" onClick={()=>void enable()}><Bell size={16}/>{busy?'Mengaktifkan…':'Aktifkan notifikasi'}</Button>{permission==='denied'&&<p className="mt-2 text-xs leading-5 text-amber-800">{isIOS ? 'Izin ditolak? Buka Pengaturan iPhone/iPad → Notifikasi → Bari Ramen → Izinkan Notifikasi. Buka lagi tiket dari ikon Layar Utama, lalu ketuk Aktifkan notifikasi. Jika aplikasi belum tercantum, minta bantuan staf.' : 'Izin ditolak? Di Chrome, ketuk ikon kontrol di sebelah alamat → Izin → Notifikasi → Izinkan (nama menu dapat berbeda). Periksa juga Pengaturan Android → Aplikasi → Chrome → Notifikasi. Kembali ke tiket, muat ulang, lalu ketuk Aktifkan notifikasi.'}</p>}</>}
-    <details className="mt-3 rounded-lg bg-slate-50 p-3 text-xs leading-6 text-slate-600" open={!isIOS}>
+      : <><Button disabled={busy||supported===null||permission==='denied'} className="mt-3 w-full" onClick={()=>void enable()}><Bell size={16}/>{busy?'Mengaktifkan…':'Aktifkan notifikasi'}</Button>{permission==='denied'&&<p className="mt-2 text-xs leading-5 text-amber-800">{isIOS ? 'Notifikasi diblokir. Buka Pengaturan iPhone/iPad → Notifikasi → Bari Ramen → Izinkan Notifikasi. Buka lagi tiket dari ikon Layar Utama, lalu ketuk Aktifkan notifikasi. Jika aplikasi belum tercantum, minta bantuan staf.' : 'Notifikasi diblokir. Di Chrome, ketuk ikon kontrol di sebelah alamat → Izin → Notifikasi → Izinkan (nama menu dapat berbeda). Periksa juga Pengaturan Android → Aplikasi → Chrome → Notifikasi. Kembali ke tiket, muat ulang, lalu ketuk Aktifkan notifikasi.'}</p>}</>}
+    <details className="mt-3 rounded-lg bg-slate-50 p-3 text-xs leading-6 text-slate-600" >
       <summary className="cursor-pointer font-semibold">Panduan Android</summary>
       <ol className="ml-4 mt-2 list-decimal">
         <li>Buka tautan tiket di Chrome, bukan browser dalam WhatsApp/Instagram.</li>

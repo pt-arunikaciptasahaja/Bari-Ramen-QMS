@@ -40,7 +40,7 @@ export default function Home() {
                 <span className="font-mono font-semibold tabular-nums">
                   {waiting}
                 </span>{" "}
-                antrean menunggu
+                rombongan sedang menunggu
               </>
             )}
           </p>
@@ -49,8 +49,8 @@ export default function Home() {
           )}
         </div>
         <p className="text-sm leading-6 text-slate-600">
-          Daftar mandiri untuk langsung membuka tiket di HP. Jika didaftarkan staf, scan QR pada layar pengambilan tiket.
-          Pantau giliran dari HP dan aktifkan notifikasi agar tidak melewatkan panggilan.
+          Daftar melalui HP untuk mendapatkan tiket antrean. Jika Anda didaftarkan staf, pindai kode QR pada layar pengambilan tiket.
+          Pantau tiket Anda dan aktifkan notifikasi agar tidak melewatkan giliran.
         </p>
         <div className="mt-4 flex flex-wrap gap-3">
           <Link href="/register" className="inline-flex min-h-11 items-center rounded-md bg-slate-900 px-4 text-sm font-semibold text-white">Daftar antrean</Link>

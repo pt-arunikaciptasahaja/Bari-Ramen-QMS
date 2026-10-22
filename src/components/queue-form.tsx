@@ -67,12 +67,12 @@ export function QueueForm({
           htmlFor="guest-name"
           className="mb-2 block text-sm font-semibold"
         >
-          Nama tamu
+          {onRegister ? "Nama perwakilan rombongan" : "Nama tamu"}
         </label>
         <input
           id="guest-name"
           autoComplete="name"
-          placeholder="Masukkan nama"
+          placeholder={onRegister ? "Nama yang akan digunakan saat dipanggil" : "Masukkan nama tamu"}
           maxLength={60}
           required
           value={name}
@@ -95,7 +95,7 @@ export function QueueForm({
       </div>
       <div>
         <label htmlFor="guest-pax" className="mb-2 block text-sm font-semibold">
-          Jumlah orang
+          {onRegister ? "Jumlah orang, termasuk Anda" : "Jumlah orang"}
         </label>
         <div
           className={`field flex items-center gap-3 ${busy ? "opacity-60" : ""}`}
@@ -144,8 +144,8 @@ export function QueueForm({
         {busy ? "Menyimpan…" : onRegister ? "Ambil nomor antrean" : "Tambah antrean"}
       </Button>
       <div className="col-span-full flex flex-wrap items-center justify-between gap-2 text-xs text-slate-500">
-        <span>Grup tamu: <GroupBadge group={groupFor(Number(pax))} /></span>
-        <span>{onRegister ? "Nomor telepon bersifat opsional. Pesan WhatsApp tidak dikirim otomatis." : "Minta persetujuan tamu sebelum menghubungi melalui WhatsApp."}</span>
+        <span>Kelompok antrean: <GroupBadge group={groupFor(Number(pax))} /></span>
+        <span>{onRegister ? "Nomor ini dapat digunakan staf untuk menghubungi Anda terkait giliran antrean. Pengisian bersifat opsional." : "Minta persetujuan tamu sebelum menghubungi melalui WhatsApp."}</span>
       </div>
       {error && (
         <p role="alert" className="text-sm text-red-700 md:col-span-full">
