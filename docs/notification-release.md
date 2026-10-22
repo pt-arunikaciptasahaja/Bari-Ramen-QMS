@@ -2,6 +2,20 @@
 
 Scope: Bari Ramen QMS only. IGNATIA POS remains separate. Production branch is `main`; review branch is `qms-notification-updates`.
 
+## Live activation — 22 October 2026, 14:24 WIB
+
+The owner reported that their test C-001 remained at call 1 for over two hours. Inspection confirmed Cron was running but `scheduler_config.enabled=false`; the application had been deployed for testing without the final activation step.
+
+The owner requested the automatic calls/no-show behavior be fixed. A guarded transaction locked queue writes, verified C-001 was the only called ticket with the exact inspected first-call timestamp/count, checked the Vault secret metadata, fixed worker URL and active 10-second Cron job, and enabled the scheduler. This was an explicit cutover for the owner's reported overdue ticket, rather than silently adopting unknown active tickets. No queue rows were manually edited. The next scheduled run moved C-001 to no-show, retaining its original first-call timestamp/count. All four waiting tickets remained waiting. Successful Cron runs after activation were verified. New staff calls now use the 0/5/10/15-minute server schedule.
+
+Earlier references to a disabled scheduler below describe the historical installation state. No schema migration was required for activation. Do not rerun activation blindly or reset live calls for testing. The isolated scheduler suite verifies reminder boundaries, concurrency and recovery; live overdue transition was verified on the owner's reported ticket. Live mobile push delivery remains device-dependent.
+
+## TV audio
+
+TV attempts Web Audio automatically on mount and resumes after focus, visibility changes and trusted clicks/keys. There is no sound toggle. A status indicator reports `Suara siap` only when the AudioContext is running. If the browser blocks autoplay, it asks for a single screen tap/click or key press; the fullscreen button also provides that gesture. No web page can override browser/OS audio permission or system mute. Delayed unlocking does not replay old call bells.
+
+For unattended TV startup, configure the actual kiosk browser's autoplay allowlist for this site. Chrome documents `AutoplayAllowlist` for kiosks: https://developer.chrome.com/blog/autoplay/#chrome-enterprise-policies. This device setup remains pending until the TV is available.
+
 ## Migration audit and installed state
 
 The live Supabase project is `niveuzuqyfcunjzqmswg`. Before any DDL, its recorded history was inspected and the actual `transition_queue`, `customer_ticket`, board synchronization and push functions were compared with repository SQL. Existing historical version differences were found; do **not** run an unreviewed `supabase db push` or repair history automatically.
