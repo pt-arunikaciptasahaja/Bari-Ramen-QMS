@@ -64,14 +64,7 @@ export default function Home() {
       <footer className="border-t border-slate-200 px-6 py-5">
         <div className="mx-auto flex max-w-5xl items-center justify-between text-xs text-slate-500">
           <span>Bari Ramen</span>
-          <nav className="flex gap-5" aria-label="Halaman operasional">
-            <Link href="/staff" className="hover:text-ink">
-              Staf
-            </Link>
-            <Link href="/tv" className="hover:text-ink">
-              Layar antrean
-            </Link>
-          </nav>
+
         </div>
       </footer>
     </div>

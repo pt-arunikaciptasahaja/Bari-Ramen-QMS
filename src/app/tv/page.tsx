@@ -6,6 +6,8 @@ import { Brand } from "@/components/brand";
 import { DemoNotice } from "@/components/demo-notice";
 import { GroupBadge } from "@/components/group-badge";
 import { groupCodes, queueGroups } from "@/lib/groups";
+import { StaffLogin } from "@/components/staff-login";
+import { useStaff } from "@/hooks/use-staff";
 import { useTVAudio } from "@/hooks/use-tv-audio";
 import { useQueue } from "@/hooks/use-queue";
 import { displayQueues } from "@/lib/queue";
@@ -21,6 +23,24 @@ function duration(calledAt: string | null, now: number) {
   return `${String(Math.floor(age / 60)).padStart(2, "0")}:${String(age % 60).padStart(2, "0")}`;
 }
 export default function TVPage() {
+  const auth = useStaff();
+  if (auth.ready && auth.allowed) return <TVDisplay />;
+  return (
+    <div className="min-h-dvh bg-white text-ink">
+      <header className="border-b border-slate-200 px-5 py-4"><Brand subtitle="Layar antrean · Khusus staf" /></header>
+      <main className="mx-auto max-w-lg px-5 py-8">
+        {!auth.ready ? <p role="status">Memeriksa akses staf…</p> : <>
+          <p className="mb-5 text-center text-sm leading-6 text-slate-600">Layar antrean hanya dapat dibuka oleh staf. Masuk menggunakan akun staf pada perangkat TV.</p>
+          <StaffLogin />
+          {auth.error && <p role="alert" className="mt-4 text-center text-sm text-red-700">{auth.error}</p>}
+        </>}
+      </main>
+    </div>
+  );
+}
+
+// Mount the board, audio and subscriptions only after staff authorization.
+function TVDisplay() {
   const { rows, loading, error, connection } = useQueue();
   const [now, setNow] = useState(0);
   const [clock, setClock] = useState("");

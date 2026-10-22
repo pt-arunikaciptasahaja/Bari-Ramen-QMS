@@ -17,3 +17,7 @@ The original transparent logo remains unchanged. Its CSS frame provides the navy
 The feature uses a local Next.js Image asset, without an Instagram embed, external request or tracking. Cap its displayed width at the source width. The photo is secondary to queue information and is hidden on landscape screens at or below 740px height to preserve call details and waiting-list space. ResizeObserver continues to calculate waiting-list capacity from the remaining area.
 
 A future original product photo can replace the screenshot source and remove the CSS frame. No queue, push, scheduler, privacy or database behavior is changed by this theme.
+
+## Customer navigation and TV access
+
+Customer-facing navigation does not link to `/staff` or `/tv`. The TV page requires the same staff-account check as the dashboard; queue subscriptions and audio mount only after that check passes. Guests who open `/tv` directly see staff sign-in. Staff can still open the TV screen from their dashboard and the TV device must sign in once with an authorized staff account. Customer registration, private tickets and public board data needed to calculate their waiting position remain available.
