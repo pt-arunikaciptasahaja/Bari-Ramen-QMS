@@ -21,3 +21,9 @@ A future original product photo can replace the screenshot source and remove the
 ## Customer navigation and TV access
 
 Customer-facing navigation does not link to `/staff` or `/tv`. The TV page requires the same staff-account check as the dashboard; queue subscriptions and audio mount only after that check passes. Guests who open `/tv` directly see staff sign-in. Staff can still open the TV screen from their dashboard and the TV device must sign in once with an authorized staff account. Customer registration, private tickets and public board data needed to calculate their waiting position remain available.
+
+## App icon revision — 24 October 2026
+
+Use the owner's new opaque JPEG (`public/brand/app-icon-source.jpg`) for app icons. Keep this source unchanged and separate from the existing page-header logo. `renderAppIcon` frames the original image proportionally around the artwork center (626, 642) in the 1254px source, correcting the source's slight vertical offset. A 730px square frame gives about 86% logo width with balanced margins. Do not pre-round the icon or introduce transparent corners; the OS supplies its own outer mask.
+
+A dedicated `/apple-touch-icon.png` provides an opaque 180px iOS icon. The PWA uses 192px and 512px square icons plus a separate 512px maskable variant, whose wider 800px source frame keeps the mark inside the central 80% circle. Browser, Apple, manifest and notification icon URLs carry the `ios-fit-20261024` revision to avoid reusing the previous URL. Existing Home Screen installations may retain their old icon until re-added by the user.
