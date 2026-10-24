@@ -49,13 +49,14 @@ export default function RegisterPage() {
     <DemoNotice />
     <header className="mx-auto max-w-md px-4 py-5"><Brand /></header>
     <main className="mx-auto max-w-md px-4 pb-8">
-      <h1 className="text-2xl font-semibold tracking-tight">Daftar antrean</h1>
-      <p className="mt-2 text-sm leading-6 text-slate-600">Isi satu formulir untuk satu rombongan. Setelah mendaftar, tiket langsung terbuka di HP Anda.</p>
-      <section aria-label="Formulir pendaftaran antrean" className="mt-5 rounded-xl bg-white p-5">
+      <p className="eyebrow mb-2 text-cobalt">Sebelum menikmati ramen</p>
+      <h1 className="text-2xl font-semibold tracking-tight">Ambil nomor antrean Anda</h1>
+      <p className="mt-2 text-sm leading-6 text-slate-600">Senang menyambut Anda di Bari Ramen. Cukup satu pendaftaran untuk setiap rombongan; tiket akan langsung terbuka di HP Anda.</p>
+      <section aria-label="Formulir pendaftaran antrean" className="mt-5 rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
         {checking ? <p role="status" className="text-sm text-slate-500">Memeriksa tiket Anda…</p> : <QueueForm onRegister={submit} />}
       </section>
-      <p className="mt-4 text-xs leading-6 text-slate-500">Antrean berlaku untuk hari ini, bukan reservasi meja pada jam tertentu. Urutan panggilan mengikuti ketersediaan meja sesuai jumlah orang. Tetap berada di sekitar restoran.</p>
-      <p className="mt-3 text-sm leading-6 text-slate-600">Perlu bantuan mengisi? Staf di kasir tetap dapat mendaftarkan Anda.</p>
+      <p className="mt-4 text-xs leading-6 text-slate-500">Tiket berlaku untuk antrean hari ini. Pendaftaran belum menjamin meja tersedia pada jam tertentu. Urutan panggilan mengikuti ketersediaan meja sesuai jumlah orang. Tetap berada di sekitar restoran.</p>
+      <p className="mt-3 text-sm leading-6 text-slate-600">Perlu bantuan? Silakan minta staf di kasir untuk mendaftarkan Anda.</p>
       <Link href="/ticket" className="mt-3 inline-flex min-h-11 items-center text-sm font-semibold underline">Buka tiket saya</Link>
       <Link href="/" className="ml-5 inline-flex min-h-11 items-center text-sm text-slate-500">Beranda</Link>
     </main>

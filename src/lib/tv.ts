@@ -4,11 +4,11 @@ export function callAgeSeconds(calledAt: string | null, now: number) {
   return Number.isFinite(value) ? Math.max(0, Math.floor((now - value) / 1000)) : 0;
 }
 export function reminderSlot(calledAt: string | null, now: number) {
-  return Math.floor(callAgeSeconds(calledAt, now) / 60);
+  return Math.floor(callAgeSeconds(calledAt, now) / 300);
 }
 export function warningLevel(calledAt: string | null, now: number) {
   const age = callAgeSeconds(calledAt, now);
-  return age >= 180 ? "urgent" : age >= 60 ? "warning" : "normal";
+  return age >= 600 ? "urgent" : age >= 300 ? "warning" : "normal";
 }
 export function rowsForHeight(height: number) {
   return Math.max(1, Math.min(10, Math.floor(height / 48)));
@@ -21,8 +21,8 @@ export function carouselPage<T>(items: T[], index: number, size: number) {
 }
 
 export function collectReminders(
-  rows: { id: string; status: string; called_at: string | null }[],
-  now: number,
+  rows: { id: string; status: string; called_at: string | null; call_count?: number }[],
+  _now: number,
   previous: Map<string, number> | null,
 ) {
   const slots = new Map<string, number>();
@@ -30,10 +30,9 @@ export function collectReminders(
   for (const row of rows) {
     if (row.status !== "called" || !row.called_at) continue;
     const key = `${row.id}:${row.called_at}`;
-    const slot = reminderSlot(row.called_at, now);
+    const slot = row.call_count ?? 1;
     slots.set(key, slot);
-    if (previous && slot > 0 && slot > (previous.get(key) ?? 0)) shouldRing = true;
+    if (previous && slot > 1 && slot > (previous.get(key) ?? slot)) shouldRing = true;
   }
-  // Reconnection can cross several minutes; play one bell, never a backlog.
   return { slots, shouldRing };
 }
