@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import { BellRing, Maximize, Volume2 } from "lucide-react";
-import Image from "next/image";
+import { TVSlideshow } from "@/components/tv-slideshow";
 import { Brand } from "@/components/brand";
 import { DemoNotice } from "@/components/demo-notice";
 import { GroupBadge } from "@/components/group-badge";
@@ -142,21 +142,7 @@ function TVDisplay() {
               </div>
             </div>) : <p className="py-8 text-center text-sm text-slate-600">{loading ? "Memuat antrean…" : "Belum ada rombongan yang menunggu."}</p>}
           </div>
-          <figure className="tv-menu-feature">
-            <p className="tv-menu-kicker">BARI-RAMEN</p>
-            <p lang="ja" className="tv-menu-japanese">バリラーメン</p>
-            <div className="ramen-photo-frame">
-              <Image
-                src="/brand/bari-ramen-bowls-source.jpg"
-                alt="Tiga mangkuk ramen Bari Ramen dengan beragam topping."
-                width={709}
-                height={1536}
-                sizes="(min-width: 640px) 34vw, 100vw"
-                className="ramen-photo-source"
-              />
-            </div>
-            <figcaption className="tv-menu-caption">Semangkuk ramen,<br />banyak cerita.</figcaption>
-          </figure>
+          <TVSlideshow />
           <div className="mt-2 shrink-0 border-t border-slate-200 pt-2 text-xs text-slate-600">
             <p>Halaman <span className="font-mono tabular-nums">{waitingPage.page + 1}/{waitingPage.pages}</span>{waitingPage.pages > 1 ? " · Berganti setiap 15 detik" : ""}</p>
             <div className="mt-2 flex flex-wrap gap-2" aria-label="Warna kelompok antrean">{groupCodes.map((group) => <GroupBadge key={group} group={group} />)}</div>

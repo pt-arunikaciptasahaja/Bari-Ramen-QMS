@@ -146,3 +146,21 @@ body {
   /* On shorter screens, reserve room for the queue and call instructions. */
   .tv-menu-feature { display: none; }
 }
+
+.tv-slideshow-frame {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: clamp(160px, 28vh, 320px);
+  width: 100%;
+  overflow: hidden;
+  background: #ffffff;
+}
+.tv-slideshow-image { width: 100%; height: 100%; object-fit: contain; }
+.tv-slide-position { margin: 4px 0 0; text-align: center; color: #64748b; font: 11px monospace; }
+@media (min-width: 640px) and (max-height: 740px) {
+  .tv-menu-feature.tv-slideshow { display: block; margin-top: 8px; padding-top: 8px; }
+  .tv-slideshow .tv-menu-japanese, .tv-slideshow .tv-menu-caption { display: none; }
+  .tv-slideshow-frame { height: clamp(100px, 20vh, 140px); }
+  .tv-slideshow .ramen-photo-frame { max-height: 140px; }
+}
