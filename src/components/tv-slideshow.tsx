@@ -94,7 +94,6 @@ export function TVSlideshow() {
   return <figure className="tv-menu-feature tv-slideshow" aria-label="Bari Ramen promotions" data-slide-updated-at={freshAt} data-slide-count={slides.length} data-slide-frame={frame?.id ?? ""} data-slide-loaded-at={frame?.loadedAt ?? 0} data-slide-visible={Boolean(visible)} data-list-attempt={listAttempt} data-list-error={listIssue} data-image-error={imageIssue}>
     {visible ? <>
       <div className="tv-slideshow-frame">
-        <img src={frame.src} alt="" aria-hidden="true" className="tv-slide-backdrop" />
         {/* Optimized server-side; blob URLs keep staff tokens out of image URLs. */}
         <img src={frame.src} alt={`Bari Ramen: ${frame.name}`} className="tv-slideshow-image" />
       </div>
