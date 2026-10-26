@@ -2,10 +2,12 @@ import Image from "next/image";
 import Link from "next/link";
 
 export function Brand({
+  homeLabel = "Bari Ramen beranda",
   dark = false,
   size = "default",
   subtitle = "Antrean restoran",
 }: {
+  homeLabel?: string;
   dark?: boolean;
   size?: "default" | "large";
   subtitle?: string;
@@ -13,7 +15,7 @@ export function Brand({
   return (
     <Link
       href="/"
-      aria-label="Bari Ramen beranda"
+      aria-label={homeLabel}
       className={`inline-flex min-w-0 items-center gap-3 rounded-lg focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-brand ${dark ? "text-white" : "text-ink"}`}
     >
       <span className={`brand-emblem ${size === "large" ? "brand-emblem-large" : ""}`}>

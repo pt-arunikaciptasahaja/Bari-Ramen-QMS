@@ -26,7 +26,7 @@ export default function TVPage() {
   if (auth.ready && auth.allowed) return <TVDisplay />;
   return (
     <div className="min-h-dvh bg-white text-ink">
-      <header className="border-b border-slate-200 px-5 py-4"><Brand subtitle="Queue display · Staff access" /></header>
+      <header className="border-b border-slate-200 px-5 py-4"><Brand homeLabel="Bari Ramen home" subtitle="Queue display · Staff access" /></header>
       <main className="mx-auto max-w-lg px-5 py-8">
         {!auth.ready ? <p role="status">Checking staff access…</p> : <>
           <p className="mb-5 text-center text-sm leading-6 text-slate-600">Sign in with a staff account to open the queue display on this device.</p>
@@ -86,7 +86,7 @@ function TVDisplay() {
     <div className="tv-board" lang="en">
       <DemoNotice language="en" />
       <header className="tv-header">
-        <Brand size="large" subtitle="Today's queue" />
+        <Brand homeLabel="Bari Ramen home" size="large" subtitle="Today's queue" />
         <div className="flex items-center gap-3 sm:gap-5">
           <span className="text-xs text-slate-500">{error ? "Reconnecting…" : connection === "Terhubung" ? "Live" : connection === "Demo lokal" ? "Demo" : "Connecting…"}</span>
           <time className="font-mono text-xl font-semibold tabular-nums">{clock}</time>
@@ -144,7 +144,7 @@ function TVDisplay() {
         </section>
         <aside className="tv-media-column" aria-label="Bari Ramen slideshow"><TVSlideshow /></aside>
       </main>
-      <footer className="tv-footer">Please head to the cashier when your number is called. We call parties as suitable tables become available. <span>Three calls, five minutes apart. Missed calls leave the queue after 15 minutes.</span></footer>
+      <footer className="tv-footer">Please head to the cashier when your number is called. We call parties as suitable tables become available. <span>We’ll call up to three times, five minutes apart. Your place is released after 15 minutes if you haven’t checked in.</span></footer>
     </div>
   );
 }
