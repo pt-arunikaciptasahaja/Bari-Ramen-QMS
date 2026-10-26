@@ -18,12 +18,12 @@ export function Brand({
       aria-label={homeLabel}
       className={`inline-flex min-w-0 items-center gap-3 rounded-lg focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-brand ${dark ? "text-white" : "text-ink"}`}
     >
-      <span className={`brand-emblem ${size === "large" ? "brand-emblem-large" : ""}`}>
+      <span className={`brand-emblem brand-emblem-updated ${size === "large" ? "brand-emblem-large" : ""}`}>
         <Image
-          src="/brand/bari-ramen-logo.png"
+          src="/brand/bari-ramen-logo-white.webp"
           alt=""
-          width={3375}
-          height={3375}
+          width={512}
+          height={512}
           sizes={size === "large" ? "160px" : "112px"}
           className="brand-emblem-image"
         />

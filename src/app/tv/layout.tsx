@@ -1,4 +1,7 @@
 import type { Metadata } from "next";
+import localFont from "next/font/local";
+
+const archivo = localFont({ src: "../../../public/fonts/archivo-latin-variable.woff2", weight: "400 900", display: "swap", variable: "--font-tv" });
 
 export const metadata: Metadata = {
   title: "Bari Ramen | Today’s Queue",
@@ -6,5 +9,5 @@ export const metadata: Metadata = {
 };
 
 export default function TVLayout({ children }: { children: React.ReactNode }) {
-  return children;
+  return <div className={archivo.variable}>{children}</div>;
 }

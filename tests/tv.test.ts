@@ -12,6 +12,8 @@ test('carousel includes every waiting number, wraps, and adapts after queue shri
   assert.equal(rowsForHeight(1000),10);
   assert.equal(rowsForHeight(240),5);
   assert.equal(rowsForHeight(0),1);
+  assert.equal(rowsForHeight(168,56),3);
+  assert.deepEqual([0,1,2,3,4].flatMap(page=>carouselPage(all,page,rowsForHeight(168,56)*2).items),all);
 });
 test('warning colors change at five and ten minutes',()=>{
   const called='2026-10-16T01:00:00Z',start=Date.parse(called);

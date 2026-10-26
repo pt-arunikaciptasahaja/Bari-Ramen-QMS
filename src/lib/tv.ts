@@ -10,8 +10,8 @@ export function warningLevel(calledAt: string | null, now: number) {
   const age = callAgeSeconds(calledAt, now);
   return age >= 600 ? "urgent" : age >= 300 ? "warning" : "normal";
 }
-export function rowsForHeight(height: number) {
-  return Math.max(1, Math.min(10, Math.floor(height / 48)));
+export function rowsForHeight(height: number, rowHeight = 48) {
+  return Math.max(1, Math.min(10, Math.floor(height / Math.max(1, rowHeight))));
 }
 export function carouselPage<T>(items: T[], index: number, size: number) {
   const capacity = Math.max(1, Math.floor(size));
