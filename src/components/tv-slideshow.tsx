@@ -91,18 +91,17 @@ export function TVSlideshow() {
   },[selected?.id,selected?.version]);
   useEffect(()=>()=>{ if (objectUrl.current) URL.revokeObjectURL(objectUrl.current); },[]);
   const visible = frame && now-freshAt<=120000 && slides.some(slide=>slide.id===frame.id && (slide.version===frame.version || now-frame.loadedAt<=120000));
-  return <figure className="tv-menu-feature tv-slideshow" aria-label="Materi Bari Ramen" data-slide-updated-at={freshAt} data-slide-count={slides.length} data-slide-frame={frame?.id ?? ""} data-slide-loaded-at={frame?.loadedAt ?? 0} data-slide-visible={Boolean(visible)} data-list-attempt={listAttempt} data-list-error={listIssue} data-image-error={imageIssue}>
-    <p className="tv-menu-kicker">BARI-RAMEN</p>
-    <p lang="ja" className="tv-menu-japanese">バリラーメン</p>
+  return <figure className="tv-menu-feature tv-slideshow" aria-label="Bari Ramen promotions" data-slide-updated-at={freshAt} data-slide-count={slides.length} data-slide-frame={frame?.id ?? ""} data-slide-loaded-at={frame?.loadedAt ?? 0} data-slide-visible={Boolean(visible)} data-list-attempt={listAttempt} data-list-error={listIssue} data-image-error={imageIssue}>
     {visible ? <>
       <div className="tv-slideshow-frame">
+        <img src={frame.src} alt="" aria-hidden="true" className="tv-slide-backdrop" />
         {/* Optimized server-side; blob URLs keep staff tokens out of image URLs. */}
-        <img src={frame.src} alt={`Materi Bari Ramen: ${frame.name}`} className="tv-slideshow-image" />
+        <img src={frame.src} alt={`Bari Ramen: ${frame.name}`} className="tv-slideshow-image" />
       </div>
-      <p className="tv-slide-position" aria-label="Posisi slideshow">{slides.findIndex(slide=>slide.id===frame.id)+1} / {slides.length}</p>
+      <p className="tv-slide-position" aria-label="Slide position">{slides.findIndex(slide=>slide.id===frame.id)+1} / {slides.length}</p>
     </> : <>
-      <div className="ramen-photo-frame"><Image src="/brand/bari-ramen-bowls-source.jpg" alt="Tiga mangkuk ramen Bari Ramen dengan beragam topping." width={709} height={1536} sizes="(min-width: 640px) 34vw, 100vw" className="ramen-photo-source" /></div>
-      <figcaption className="tv-menu-caption">Semangkuk ramen,<br />banyak cerita.</figcaption>
+      <div className="ramen-photo-frame"><Image src="/brand/bari-ramen-bowls-source.jpg" alt="Three bowls of Bari Ramen with assorted toppings." width={709} height={1536} sizes="(min-width: 640px) 34vw, 100vw" className="ramen-photo-source" /></div>
+      <figcaption className="tv-menu-caption">Your next bowl awaits.</figcaption>
     </>}
   </figure>;
 }
