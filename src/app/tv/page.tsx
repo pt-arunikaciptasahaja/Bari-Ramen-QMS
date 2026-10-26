@@ -9,7 +9,7 @@ import { useStaff } from "@/hooks/use-staff";
 import { useTVAudio } from "@/hooks/use-tv-audio";
 import { useQueue } from "@/hooks/use-queue";
 import { displayQueues } from "@/lib/queue";
-import { carouselPage, collectReminders, rowsForHeight } from "@/lib/tv";
+import { carouselPage, collectReminders } from "@/lib/tv";
 
 export default function TVPage() {
   const auth = useStaff();
@@ -37,8 +37,7 @@ function TVDisplay() {
   const [displayError, setDisplayError] = useState("");
   const [flash, setFlash] = useState(0);
   const [rotation, setRotation] = useState(0);
-  const [capacity, setCapacity] = useState(10);
-  const waitingArea = useRef<HTMLDivElement>(null);
+  const [columns, setColumns] = useState(2);
   const seen = useRef<Map<string, string> | null>(null);
   const reminderSlots = useRef<Map<string, number> | null>(null);
   useEffect(() => {
@@ -49,9 +48,10 @@ function TVDisplay() {
     tick();
     const timer = setInterval(tick, 1000);
     const carousel = setInterval(() => setRotation((value) => value + 1), 15000);
-    const observer = new ResizeObserver(([entry]) => setCapacity(rowsForHeight(entry.contentRect.height, 56) * (window.matchMedia("(min-width: 640px)").matches ? 2 : 1)));
-    if (waitingArea.current) observer.observe(waitingArea.current);
-    return () => { clearInterval(timer); clearInterval(carousel); observer.disconnect(); };
+    const screen = window.matchMedia("(min-width: 640px)");
+    const resize = () => setColumns(screen.matches ? 2 : 1);
+    resize(); screen.addEventListener("change", resize);
+    return () => { clearInterval(timer); clearInterval(carousel); screen.removeEventListener("change", resize); };
   }, []);
   useEffect(() => {
     if (loading || error) return;
@@ -69,7 +69,7 @@ function TVDisplay() {
   }, [rows, now, loading, error, bell]);
 
   const { current, previousCalls, waiting } = displayQueues(rows);
-  const waitingPage = carouselPage(waiting, rotation, capacity);
+  const waitingPage = carouselPage(waiting, rotation, columns * 3);
   const previousPage = carouselPage(previousCalls, rotation, 4);
   return (
     <div className="tv-board" lang="en">
@@ -100,7 +100,7 @@ function TVDisplay() {
           </section>}
           <section className="tv-waiting" aria-labelledby="waiting-title">
             <h2 id="waiting-title" className="tv-section-label">Waiting list</h2>
-            <div ref={waitingArea} className="tv-waiting-area">
+            <div className="tv-waiting-area">
               {waitingPage.items.length ? <ol className="tv-waiting-grid" start={waitingPage.offset + 1}>
                 {waitingPage.items.map(entry => <li key={entry.id} className="tv-waiting-row">{entry.queue_number}</li>)}
               </ol> : <p className="tv-waiting-empty">{loading ? "Loading the queue…" : "No parties waiting right now."}</p>}
