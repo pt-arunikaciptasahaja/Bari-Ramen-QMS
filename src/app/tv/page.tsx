@@ -75,7 +75,7 @@ function TVDisplay() {
     <div className="tv-board" lang="en">
       <DemoNotice language="en" />
       <header className="tv-header">
-        <Brand homeLabel="Bari Ramen home" size="large" subtitle="Today's queue" />
+        <Brand homeLabel="Bari Ramen home" size="large" subtitle="" />
         <div className="tv-header-tools">
           <time aria-label="Jakarta time" className="tv-clock">{clock}</time>
           <button aria-label="Toggle fullscreen" className="tv-fullscreen" onClick={() => {
