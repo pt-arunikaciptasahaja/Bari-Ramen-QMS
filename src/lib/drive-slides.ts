@@ -102,3 +102,18 @@ export async function loadDriveImage(slide: DriveSlide, fetcher: typeof fetch = 
   }
   throw new Error('Terlalu banyak redirect');
 }
+
+/** Cache only this fixed public catalogue; refresh expired lists synchronously.
+ * Do not use stale-while-revalidate here: deletion/freshness matters to posters.
+ */
+export function createSlideCatalog(loader: () => Promise<DriveSlide[]>, now: () => number = Date.now) {
+  let cached: {slides:DriveSlide[];checkedAt:number} | null = null;
+  let pending: Promise<{slides:DriveSlide[];checkedAt:number}> | null = null;
+  return () => {
+    if (cached && now()-cached.checkedAt<30000) return Promise.resolve(cached);
+    if (!pending) pending = loader().then(slides=>{
+      cached={slides,checkedAt:now()}; return cached;
+    }).finally(()=>{pending=null;});
+    return pending;
+  };
+}

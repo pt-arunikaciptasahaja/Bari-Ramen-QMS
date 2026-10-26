@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {parsePublicFolder,loadDriveSlides,loadDriveImage,limitedBody,googleMediaHost} from '../src/lib/drive-slides';
+import {createSlideCatalog,parsePublicFolder,loadDriveSlides,loadDriveImage,limitedBody,googleMediaHost} from '../src/lib/drive-slides';
 import {nextSlideId} from '../src/lib/slideshow';
 const row=(id:string,name:string)=>`<tr role="row" data-target="doc" data-id="${id}"><div data-id="${id}" data-tooltip="${name} Image"></div></tr>`;
 const folder=(rows:string)=>`<html><title>TV - Google Drive</title><table>${rows}</table></html>`;
@@ -68,4 +68,18 @@ test('production TV media routes reject unauthenticated requests before listing 
     if (beforeUrl===undefined)delete process.env.NEXT_PUBLIC_SUPABASE_URL; else process.env.NEXT_PUBLIC_SUPABASE_URL=beforeUrl;
     if (beforeKey===undefined)delete process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY; else process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY=beforeKey;
   }
+});
+
+test('catalogue waits for a fresh list after expiry, coalesces readers and retries failures',async()=>{
+  let time=0,reads=0,fail=false;
+  const catalog=createSlideCatalog(async()=>{
+    reads++; if(fail)throw new Error('offline');
+    return [{id:reads===1?a:b,name:'poster.png',version:String(reads)}];
+  },()=>time);
+  const first=await Promise.all([catalog(),catalog()]); assert.equal(reads,1);
+  assert.equal(first[0].slides[0].id,a);
+  time=29999;assert.equal((await catalog()).slides[0].id,a);assert.equal(reads,1);
+  time=30000;assert.equal((await catalog()).slides[0].id,b);assert.equal(reads,2);
+  time=60000;fail=true;await assert.rejects(catalog());
+  fail=false;const recovered=await catalog();assert.equal(recovered.checkedAt,60000);assert.equal(reads,4);
 });

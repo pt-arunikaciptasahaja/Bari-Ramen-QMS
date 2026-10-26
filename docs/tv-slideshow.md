@@ -6,7 +6,7 @@ Source folder: https://drive.google.com/drive/folders/1wWndTHaR5FNv4FRu5SC-QvRoJ
 
 Upload JPG/JPEG, PNG, WebP or AVIF directly into this folder. The files and folder must stay viewable through the public sharing link; the TV never signs into a Google account. Only direct child images are shown, not videos, PDFs, SVGs, shortcuts or subfolders. Name files `01-...`, `02-...` to set the order. Removing a file or moving it out of the folder removes it from the next refreshed list. A newly uploaded file appears automatically. No deployment is needed for media changes.
 
-The screen advances every 10 seconds and requests a fresh list every 60 seconds, also checking when the network reconnects or the screen becomes visible. Server metadata cache lasts 30 seconds. Updates normally appear in about 1–2 minutes, subject to Google availability/cache. Photos are displayed whole with contain sizing; no promotional text is cropped. Media stays separate from queue calls/audio/scheduling and is compact on short landscape displays.
+The screen advances every 10 seconds and requests a fresh list every 60 seconds, also checking when the network reconnects or the screen becomes visible. Server metadata cache lasts 30 seconds per warm instance; expired metadata is refreshed synchronously, without stale-while-revalidate. Updates normally appear in about 1–2 minutes, subject to Google availability/cache. Photos are displayed whole with contain sizing; no promotional text is cropped. Media stays separate from queue calls/audio/scheduling and is compact on short landscape displays.
 
 ## Runtime access and fallback
 
@@ -16,7 +16,7 @@ No Google credential was supplied or created. The active implementation therefor
 
 Optionally set a server-only `GOOGLE_DRIVE_API_KEY` restricted to the Google Drive API. The implementation then uses the official Drive v3 files.list API, follows pagination and tracks file revisions. It accepts up to 200 supported images. Never use a NEXT_PUBLIC variable for this key. No API key or OAuth credential is extracted from Google's public page or bundled into the TV.
 
-Unavailable images are skipped as the slideshow rotates. Previously loaded media is retained only briefly when metadata refresh fails; metadata older than 2 minutes is rejected, and the screen falls back to the existing Bari Ramen brand image. Deleted IDs disappear immediately after a successful list refresh. Empty folders also show the brand fallback. An outage does not stop or change queue processing.
+Unavailable images are skipped as the slideshow rotates. Previously loaded media is retained only briefly when metadata refresh fails; the client rejects metadata older than 2 minutes, and the screen falls back to the existing Bari Ramen brand image. Deleted IDs disappear immediately after a successful list refresh. Empty folders also show the brand fallback. An outage does not stop or change queue processing.
 
 ## Image pipeline
 

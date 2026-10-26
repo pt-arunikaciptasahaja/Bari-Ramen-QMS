@@ -1,5 +1,6 @@
 import { driveSnapshot, tvMediaAccess } from '@/lib/server-tv-slides';
 export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
 export const maxDuration = 30;
 export async function GET(request: Request) {
   const denied = await tvMediaAccess(request); if (denied) return denied;

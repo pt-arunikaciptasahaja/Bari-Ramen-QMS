@@ -2,7 +2,7 @@ import { unstable_cache } from 'next/cache';
 import sharp from 'sharp';
 import { serverDb } from './server-push';
 import { isDemo } from './supabase';
-import { loadDriveSlides, loadDriveImage, TV_DRIVE_FOLDER, type DriveSlide } from './drive-slides';
+import { loadDriveSlides, loadDriveImage, createSlideCatalog, type DriveSlide } from './drive-slides';
 
 export async function tvMediaAccess(request: Request): Promise<Response | null> {
   // Preview/local demo has no production credentials or customer data.
@@ -18,13 +18,8 @@ export async function tvMediaAccess(request: Request): Promise<Response | null> 
     return null;
   } catch { return Response.json({error:'Akses belum dapat diperiksa'},{status:503}); }
 }
-const snapshot = unstable_cache(async () => ({slides:await loadDriveSlides(),checkedAt:Date.now()}),
-  ['bari-tv-drive',TV_DRIVE_FOLDER,process.env.GOOGLE_DRIVE_API_KEY ? 'api' : 'public'],{revalidate:30});
-export async function driveSnapshot() {
-  const result = await snapshot();
-  if (Date.now()-result.checkedAt>120000) throw new Error('Daftar materi sudah kedaluwarsa');
-  return result;
-}
+const snapshot = createSlideCatalog(loadDriveSlides);
+export function driveSnapshot() { return snapshot(); }
 export function slideImage(slide: DriveSlide) {
   return unstable_cache(async () => {
     const body = await loadDriveImage(slide);

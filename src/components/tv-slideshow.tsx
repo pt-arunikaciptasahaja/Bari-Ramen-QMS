@@ -78,7 +78,7 @@ export function TVSlideshow() {
   },[selected?.id,selected?.version]);
   useEffect(()=>()=>{ if (objectUrl.current) URL.revokeObjectURL(objectUrl.current); },[]);
   const visible = frame && now-freshAt<=120000 && slides.some(slide=>slide.id===frame.id && (slide.version===frame.version || now-frame.loadedAt<=120000));
-  return <figure className="tv-menu-feature tv-slideshow" aria-label="Materi Bari Ramen">
+  return <figure className="tv-menu-feature tv-slideshow" aria-label="Materi Bari Ramen" data-slide-updated-at={freshAt} data-slide-count={slides.length} data-slide-frame={frame?.id ?? ""} data-slide-loaded-at={frame?.loadedAt ?? 0} data-slide-visible={Boolean(visible)}>
     <p className="tv-menu-kicker">BARI-RAMEN</p>
     <p lang="ja" className="tv-menu-japanese">バリラーメン</p>
     {visible ? <>
