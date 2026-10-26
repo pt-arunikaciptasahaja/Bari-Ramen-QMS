@@ -6,6 +6,7 @@ import { canAdvanceSlide, nextSlideId } from '@/lib/slideshow';
 import type { DriveSlide } from '@/lib/drive-slides';
 
 type Slide = Pick<DriveSlide,'id'|'name'|'version'>;
+type Frame = Slide & {src:string;loadedAt:number};
 async function mediaFetch(url: string, signal: AbortSignal) {
   const headers: Record<string,string> = {};
   if (!isDemo) {
@@ -20,8 +21,11 @@ export function TVSlideshow() {
   const [active,setActive] = useState('');
   const [freshAt,setFreshAt] = useState(0);
   const [now,setNow] = useState(0);
-  const [frame,setFrame] = useState<{id:string;name:string;src:string;version:string;loadedAt:number}|null>(null);
-  const objectUrl = useRef('');
+  const [frame,setFrame] = useState<Frame|null>(null);
+  const [previousFrame,setPreviousFrame] = useState<Frame|null>(null);
+  const frameRef = useRef<Frame|null>(null);
+  const objectUrls = useRef(new Set<string>());
+  const retirement = useRef<ReturnType<typeof setTimeout>|null>(null);
   const loadingImage = useRef(false);
   const shownAt = useRef(0);
   const [listAttempt,setListAttempt] = useState(0);
@@ -74,30 +78,37 @@ export function TVSlideshow() {
         const response = await mediaFetch(`/api/tv/slides/image?id=${encodeURIComponent(selected.id)}&v=${encodeURIComponent(selected.version)}`,request.signal);
         if (!response.ok) throw new Error(`image-http-${response.status}`);
         if (response.headers.get('content-type')!=='image/webp') throw new Error('image-type');
-        localUrl = URL.createObjectURL(await response.blob());
+        localUrl = URL.createObjectURL(await response.blob()); objectUrls.current.add(localUrl);
         const image = new window.Image(); image.src = localUrl; await image.decode();
-        if (!alive) { URL.revokeObjectURL(localUrl); return; }
-        const old = objectUrl.current; objectUrl.current=localUrl;
+        if (!alive) { URL.revokeObjectURL(localUrl); objectUrls.current.delete(localUrl); return; }
+        const old = frameRef.current;
+        if (retirement.current) clearTimeout(retirement.current);
+        // Only the current and outgoing frames need live blob URLs.
+        for (const url of objectUrls.current) if (url !== localUrl && url !== old?.src) { URL.revokeObjectURL(url); objectUrls.current.delete(url); }
+        const next = {id:selected.id,name:selected.name,src:localUrl,version:selected.version,loadedAt:Date.now()};
+        frameRef.current=next; setPreviousFrame(old);
         shownAt.current=Date.now(); setImageIssue('');
-        setFrame({id:selected.id,name:selected.name,src:localUrl,version:selected.version,loadedAt:Date.now()});
-        if (old) URL.revokeObjectURL(old);
+        setFrame(next);
+        if (old) retirement.current=setTimeout(()=>{
+          setPreviousFrame(null); URL.revokeObjectURL(old.src); objectUrls.current.delete(old.src); retirement.current=null;
+        },850);
       } catch (error) {
-        if (localUrl) URL.revokeObjectURL(localUrl);
+        if (localUrl) { URL.revokeObjectURL(localUrl); objectUrls.current.delete(localUrl); }
         if (alive) setImageIssue(error instanceof Error && /^image-[a-z0-9-]+$/.test(error.message) ? error.message : 'image-network');
       }
       finally { clearTimeout(timeout); if (alive) loadingImage.current=false; }
     })();
     return ()=>{ alive=false; loadingImage.current=false; clearTimeout(timeout); request.abort(); };
   },[selected?.id,selected?.version]);
-  useEffect(()=>()=>{ if (objectUrl.current) URL.revokeObjectURL(objectUrl.current); },[]);
+  useEffect(()=>()=>{ if (retirement.current) clearTimeout(retirement.current); for (const url of objectUrls.current) URL.revokeObjectURL(url); objectUrls.current.clear(); },[]);
   const visible = frame && now-freshAt<=120000 && slides.some(slide=>slide.id===frame.id && (slide.version===frame.version || now-frame.loadedAt<=120000));
   return <figure className="tv-menu-feature tv-slideshow" aria-label="Bari Ramen promotions" data-slide-updated-at={freshAt} data-slide-count={slides.length} data-slide-frame={frame?.id ?? ""} data-slide-loaded-at={frame?.loadedAt ?? 0} data-slide-visible={Boolean(visible)} data-list-attempt={listAttempt} data-list-error={listIssue} data-image-error={imageIssue}>
     {visible ? <>
       <div className="tv-slideshow-frame">
         {/* Optimized server-side; blob URLs keep staff tokens out of image URLs. */}
-        <img src={frame.src} alt={`Bari Ramen: ${frame.name}`} className="tv-slideshow-image" />
+        {previousFrame && slides.some(slide=>slide.id===previousFrame.id) && <div className="tv-slide-layer tv-slide-outgoing" aria-hidden="true"><img src={previousFrame.src} alt="" className="tv-slideshow-image" /></div>}
+        <div key={frame.src} className={`tv-slide-layer ${previousFrame ? "tv-slide-incoming" : ""}`}><img src={frame.src} alt={`Bari Ramen: ${frame.name}`} className="tv-slideshow-image" /></div>
       </div>
-      <p className="tv-slide-position" aria-label="Slide position">{slides.findIndex(slide=>slide.id===frame.id)+1} / {slides.length}</p>
     </> : <>
       <div className="ramen-photo-frame"><Image src="/brand/bari-ramen-bowls-source.jpg" alt="Three bowls of Bari Ramen with assorted toppings." width={709} height={1536} sizes="(min-width: 640px) 34vw, 100vw" className="ramen-photo-source" /></div>
       <figcaption className="tv-menu-caption">Your next bowl awaits.</figcaption>

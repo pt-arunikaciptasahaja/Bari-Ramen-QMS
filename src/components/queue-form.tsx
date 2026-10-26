@@ -1,8 +1,9 @@
 "use client";
 import { FormEvent, useRef, useState } from "react";
-import { ChevronDown, Loader2, Plus, Users } from "lucide-react";
+import { Loader2, Plus } from "lucide-react";
 import { enqueue } from "@/lib/api";
 import { groupFor, type QueueEntry } from "@/lib/queue";
+import { PartySizeSelect } from "./party-size-select";
 import { GroupBadge } from "./group-badge";
 import { Button } from "./ui/button";
 type QueueFormProps =
@@ -60,7 +61,7 @@ export function QueueForm({
   return (
     <form
       onSubmit={submit}
-      className={onRegister ? "grid gap-4" : "grid gap-3 sm:grid-cols-2 sm:items-end xl:grid-cols-[1fr_1fr_150px_auto]"}
+      className={onRegister ? "grid gap-4" : "grid gap-3 sm:grid-cols-2 sm:items-end xl:grid-cols-[1fr_1fr_190px_auto]"}
     >
       <div>
         <label
@@ -97,39 +98,7 @@ export function QueueForm({
         <label htmlFor="guest-pax" className="mb-2 block text-sm font-semibold">
           {onRegister ? "Jumlah orang, termasuk Anda" : "Jumlah orang"}
         </label>
-        <div
-          className={`field flex items-center gap-3 ${busy ? "opacity-60" : ""}`}
-        >
-          <Users
-            aria-hidden="true"
-            className="pointer-events-none shrink-0 text-slate-400"
-            size={18}
-          />
-          <select
-            id="guest-pax"
-            value={pax}
-            disabled={busy}
-            onChange={(e) => {
-              changed();
-              setPax(e.target.value);
-            }}
-            className="min-w-0 flex-1 self-stretch appearance-none bg-transparent p-0 font-mono tabular-nums outline-none"
-          >
-            {Array.from({ length: 12 }, (_, i) => (
-              <option key={i} value={i + 1}>
-                {i + 1}
-              </option>
-            ))}
-          </select>
-          <span aria-hidden="true" className="text-sm text-slate-500">
-            orang
-          </span>
-          <ChevronDown
-            aria-hidden="true"
-            size={16}
-            className="pointer-events-none shrink-0 text-slate-500"
-          />
-        </div>
+        <PartySizeSelect value={pax} disabled={busy} onChange={value => { changed(); setPax(value); }} />
       </div>
       <Button
         type="submit"
