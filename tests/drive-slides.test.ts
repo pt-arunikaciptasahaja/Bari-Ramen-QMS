@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createSlideCatalog,parsePublicFolder,loadDriveSlides,loadDriveImage,limitedBody,googleMediaHost} from '../src/lib/drive-slides';
-import {nextSlideId} from '../src/lib/slideshow';
+import {canAdvanceSlide,nextSlideId} from '../src/lib/slideshow';
 const row=(id:string,name:string)=>`<tr role="row" data-target="doc" data-id="${id}"><div data-id="${id}" data-tooltip="${name} Image"></div></tr>`;
 const folder=(rows:string)=>`<html><title>TV - Google Drive</title><table>${rows}</table></html>`;
 const a='aaaaaaaaaaaa', b='bbbbbbbbbbbb', c='cccccccccccc';
@@ -82,4 +82,10 @@ test('catalogue waits for a fresh list after expiry, coalesces readers and retri
   time=30000;assert.equal((await catalog()).slides[0].id,b);assert.equal(reads,2);
   time=60000;fail=true;await assert.rejects(catalog());
   fail=false;const recovered=await catalog();assert.equal(recovered.checkedAt,60000);assert.equal(reads,4);
+});
+
+test('slow image downloads are allowed to finish before the slideshow advances',()=>{
+  assert.equal(canAdvanceSlide(true,0,20000),false);
+  assert.equal(canAdvanceSlide(false,20000,29999),false);
+  assert.equal(canAdvanceSlide(false,20000,30000),true);
 });
