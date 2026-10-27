@@ -4,11 +4,11 @@ export function callAgeSeconds(calledAt: string | null, now: number) {
   return Number.isFinite(value) ? Math.max(0, Math.floor((now - value) / 1000)) : 0;
 }
 export function reminderSlot(calledAt: string | null, now: number) {
-  return Math.floor(callAgeSeconds(calledAt, now) / 300);
+  return Math.floor(callAgeSeconds(calledAt, now) / 180);
 }
 export function warningLevel(calledAt: string | null, now: number) {
   const age = callAgeSeconds(calledAt, now);
-  return age >= 600 ? "urgent" : age >= 300 ? "warning" : "normal";
+  return age >= 360 ? "urgent" : age >= 180 ? "warning" : "normal";
 }
 export function rowsForHeight(height: number, rowHeight = 48) {
   return Math.max(1, Math.min(10, Math.floor(height / Math.max(1, rowHeight))));

@@ -284,7 +284,7 @@ export default function StaffPage() {
                 <tbody>
                   {filtered.map((entry) => {
                     const contact = whatsappState(entry, now);
-                    const contactHelp = !contact.hasPhone ? "Nomor belum tersedia atau tidak valid" : entry.status !== "called" ? "Aktif setelah panggilan ke-3 (menit ke-10)" : contact.enabled ? `Gunakan WhatsApp restoran ${BARI_WHATSAPP}` : contact.remaining === 0 ? "Menunggu pembaruan panggilan ke-3" : `Aktif dalam ${String(Math.floor(contact.remaining / 60)).padStart(2, "0")}:${String(contact.remaining % 60).padStart(2, "0")}`;
+                    const contactHelp = !contact.hasPhone ? "Nomor belum tersedia atau tidak valid" : entry.status !== "called" ? "Aktif 3 menit setelah panggilan pertama" : contact.enabled ? `Gunakan WhatsApp restoran ${BARI_WHATSAPP}` : contact.remaining === 0 ? "Menunggu pembaruan antrean" : `Aktif dalam ${String(Math.floor(contact.remaining / 60)).padStart(2, "0")}:${String(contact.remaining % 60).padStart(2, "0")}`;
                     return (
                     <tr
                       key={entry.id}

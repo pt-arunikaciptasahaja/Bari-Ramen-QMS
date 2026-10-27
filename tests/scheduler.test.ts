@@ -28,24 +28,31 @@ test('server call cycle, outbox, authorization, recovery and terminal-state safe
     async function age(id:string,seconds:number){
       await db.query("update queue_entries set called_at=clock_timestamp()-($2*interval '1 second'),last_call_at=clock_timestamp()-($2*interval '1 second') where id=$1",[id,seconds]);
     }
+    await db.exec("update qms_private.scheduler_config set call_policy_started_at='-infinity'");
     const first=await create();
     await t.test('minute zero is one committed call with one push job, dormant scheduler changes nothing',async()=>{
       assert.equal((await row(first.id)).call_count,1);
       await age(first.id,301);assert.equal(await tick(),0);assert.equal((await row(first.id)).call_count,1);
     });
     await db.query("update qms_private.scheduler_config set enabled=true,worker_secret_hash=encode(sha256(convert_to($1,'UTF8')),'hex')",[secret]);
-    await t.test('5/10/15-minute boundaries and repeated ticks preserve first call timestamp',async()=>{
-      await age(first.id,299);await tick();assert.equal((await row(first.id)).call_count,1);
-      await age(first.id,300.1);const anchor=(await row(first.id)).called_at;
+    await t.test('3/6/10-minute boundaries and repeated ticks preserve first call timestamp',async()=>{
+      await age(first.id,179);await tick();assert.equal((await row(first.id)).call_count,1);
+      await age(first.id,180.1);const anchor=(await row(first.id)).called_at;
       await tick();assert.equal((await row(first.id)).call_count,2);
       assert.equal(String((await row(first.id)).called_at),String(anchor));
       assert.equal(await tick(),0);
-      await age(first.id,599);await tick();assert.equal((await row(first.id)).call_count,2);
-      await age(first.id,600.1);await tick();assert.equal((await row(first.id)).call_count,3);
+      await age(first.id,359);await tick();assert.equal((await row(first.id)).call_count,2);
+      await age(first.id,360.1);await tick();assert.equal((await row(first.id)).call_count,3);
       assert.equal(await value<number>('select count(*)::int as v from qms_private.push_jobs where ticket_id=$1',[first.id]),3);
-      await age(first.id,899);await tick();assert.equal((await row(first.id)).status,'called');
-      await age(first.id,900.1);await tick();assert.equal((await row(first.id)).status,'no-show');
+      await age(first.id,599);await tick();assert.equal((await row(first.id)).status,'called');
+      await age(first.id,600.1);await tick();assert.equal((await row(first.id)).status,'no-show');
       assert.equal((await row(first.id)).call_count,3);assert.equal(await tick(),0);
+    });
+    await t.test('existing calls retain their fifteen-minute deadline',async()=>{
+      await db.exec("update qms_private.scheduler_config set call_policy_started_at=clock_timestamp()");
+      const r=await create();await age(r.id,660);await tick();assert.equal((await row(r.id)).status,'called');
+      await age(r.id,901);await tick();assert.equal((await row(r.id)).status,'no-show');
+      await db.exec("update qms_private.scheduler_config set call_policy_started_at='-infinity'");
     });
     await t.test('seating before deadline stops reminders and no-show',async()=>{
       const r=await create();await db.query("select transition_queue($1,'seated')",[r.id]);
@@ -53,12 +60,12 @@ test('server call cycle, outbox, authorization, recovery and terminal-state safe
       assert.equal((await row(r.id)).call_count,1);
     });
     await t.test('staff cannot assign a table after the deadline while awaiting the next scheduler tick',async()=>{
-      const r=await create();await age(r.id,901);
-      await assert.rejects(db.query("select transition_queue($1,'seated')",[r.id]),/15 menit/);
+      const r=await create();await age(r.id,601);
+      await assert.rejects(db.query("select transition_queue($1,'seated')",[r.id]),/Batas kedatangan/);
       await tick();assert.equal((await row(r.id)).status,'no-show');
     });
     await t.test('late recovery skips reminder backlog and expired calls never send',async()=>{
-      const r=await create();await age(r.id,660);await tick();assert.equal((await row(r.id)).call_count,3);
+      const r=await create();await age(r.id,400);await tick();assert.equal((await row(r.id)).call_count,3);
       assert.equal(await value<number>('select count(*)::int as v from qms_private.push_jobs where ticket_id=$1',[r.id]),2);
       const expired=await create();await age(expired.id,960);await tick();assert.equal((await row(expired.id)).status,'no-show');
       assert.equal(await value<number>('select count(*)::int as v from qms_private.push_jobs where ticket_id=$1',[expired.id]),1);

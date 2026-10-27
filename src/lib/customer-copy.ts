@@ -1,6 +1,6 @@
 import type { QueueStatus } from './queue';
 
-export const CALL_POLICY_COPY = 'Nomor dipanggil maksimal 3 kali dengan jeda 5 menit. Jika meja belum diberikan dalam 15 menit sejak panggilan pertama, antrean otomatis dilewati.';
+export const CALL_POLICY_COPY = 'Nomor dipanggil maksimal 3 kali dengan jeda 3 menit. Jika meja belum diberikan dalam 10 menit sejak panggilan pertama, antrean otomatis dilewati.';
 export function customerStatusCopy(status: QueueStatus, expired = false) {
   if (expired) return 'Tiket ini sudah tidak berlaku. Silakan hubungi staf untuk pendaftaran antrean hari ini.';
   if (status === 'seated') return 'Meja Anda sudah dikonfirmasi. Selamat menikmati ramen di Bari Ramen.';

@@ -1,6 +1,6 @@
 import { normalizePhone, serviceDate, type QueueEntry } from "./queue";
 
-export const WHATSAPP_DELAY_SECONDS = 600;
+export const WHATSAPP_DELAY_SECONDS = 180;
 export const BARI_WHATSAPP = "+62 852-1996-9592";
 type ContactEntry = Pick<QueueEntry, "customer_phone" | "customer_name" | "queue_number" | "status" | "called_at" | "service_date" | "call_count">;
 
@@ -11,11 +11,11 @@ export function whatsappState(entry: ContactEntry, now: number) {
   const active = entry.status === "called" && Number.isFinite(now) && now > 0 &&
     Number.isFinite(called) && called <= now && entry.service_date === serviceDate(new Date(now));
   const remaining = active ? Math.max(0, WHATSAPP_DELAY_SECONDS - Math.floor((now - called) / 1000)) : WHATSAPP_DELAY_SECONDS;
-  return { enabled: Boolean(phone && active && (entry.call_count ?? 0) >= 3 && remaining === 0), remaining, hasPhone: Boolean(phone) };
+  return { enabled: Boolean(phone && active && (entry.call_count ?? 0) >= 1 && remaining === 0), remaining, hasPhone: Boolean(phone) };
 }
 
 export function whatsappMessage(entry: ContactEntry) {
-  return `Halo ${entry.customer_name}, kami dari Bari Ramen (${BARI_WHATSAPP}). Nomor antrean ${entry.queue_number} telah dipanggil 3 kali. Silakan segera menuju kasir dan tunjukkan tiket Anda. Jika sudah berada di restoran, mohon lapor kepada staf. Terima kasih.`;
+  return `Halo ${entry.customer_name}, kami dari Bari Ramen (${BARI_WHATSAPP}). Nomor antrean ${entry.queue_number} sudah dipanggil. Silakan segera menuju kasir dan tunjukkan tiket Anda. Jika sudah berada di restoran, mohon lapor kepada staf. Terima kasih.`;
 }
 
 export function whatsappLink(entry: ContactEntry, now: number) {
