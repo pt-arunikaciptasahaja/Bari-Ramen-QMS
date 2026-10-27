@@ -1,4 +1,4 @@
-# Safari and iOS Home Screen ticket continuity
+# Browser and Home Screen ticket continuity (iOS and Android)
 
 Safari and an installed iOS web app have separate cookies, Supabase anonymous
 sessions and localStorage. A website cannot silently discover the other store.
@@ -9,8 +9,8 @@ that two sessions belong to the same customer.
 
 1. Register in either context. The application creates one private visit bridge.
 2. On the ticket, choose **Salin tautan tiket**.
-3. In the other context, open registration, expand **Sudah daftar di Safari atau
-   browser lain?**, paste the complete link and choose **Hubungkan tiket saya**.
+3. In the other context, open registration, expand **Sudah daftar di Safari, Chrome, atau
+   aplikasi?**, paste the complete link and choose **Hubungkan tiket saya**.
 4. Both contexts now resolve the same server-side current ticket on reopening,
    focus, returning online and every 15 seconds while open. Repeated registration
    against the same bridge returns the existing active ticket.
@@ -59,3 +59,30 @@ and models independent Safari/Home Screen stores and different anonymous users:
 Browser QA also covers the transfer disclosure, link validation and registration
 UI. Cloud Chrome is not a physical iOS Safari/standalone runtime; installation,
 iOS clipboard behavior and Web Push delivery still need a physical-device check.
+
+## Android Chrome
+
+Chrome-installed apps/shortcuts use the installing browser context. Register and
+install using the same regular Chrome profile. A shortcut installed before
+registration can recover the shared saved ticket when opened. Different browsers,
+profiles, private browsing and cleared site data must not be assumed to share
+storage; use the same private-link transfer fallback. The app now includes an
+Android Chrome installation guide on registration and ticket pages, with menu
+wording variants (Add to Home Screen / Install app / Install and create shortcut).
+Notification permission is requested explicitly and must be tested from the
+context the customer will use. Do not claim physical-device coverage from a
+cloud desktop Chrome browser check.
+
+## Release verification (27 Oct 2026)
+
+Production migration history records `20261027135510_link_customer_visits`.
+The repository migration filename matches that applied version. Production checks
+confirm RLS is enabled, direct SELECT is denied to anon/authenticated, anonymous
+registration is denied, guest registration is granted, and an unknown private
+link resolves to null. No live queue records were used for these checks.
+
+The security advisor reports the expected callable SECURITY DEFINER endpoints
+and the private table's intentionally deny-all RLS policy configuration. The
+functions check private capabilities and/or Auth as described above; these
+advisories do not mean public table access was granted. Existing unrelated
+platform advisories were not changed by this release.

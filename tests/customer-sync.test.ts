@@ -36,6 +36,13 @@ test('separate browser and installed-app sessions share only a deliberately tran
       assert.equal(home.get(CUSTOMER_VISIT_KEY),undefined);
       assert.equal(home.get(CUSTOMER_TICKET_KEY),undefined);
     });
+    await t.test('Android Chrome same-profile Home Screen launch reuses the browser ticket without a transfer',async()=>{
+      // Same browser profile has the same Auth user even if local ticket state was lost.
+      const resumed=await register();
+      assert.equal(resumed.id,first.id);
+      assert.equal(resumed.visit_token,first.visit_token);
+      assert.equal(await val<number>('select count(*)::int v from public.queue_board'),1);
+    });
     await user(app);
     await t.test('one explicit transfer opens the same ticket without another registration',async()=>{
       const link=importedTicketToken(`https://qms.test/ticket#t=${first.visit_token}`,'https://qms.test');
@@ -71,6 +78,12 @@ test('separate browser and installed-app sessions share only a deliberately tran
     await t.test('reopening the original pinned URL never rolls back to C-001',async()=>{
       assert.equal(await val<string>('select link_customer_visit($1) v',[first.visit_token]),first.visit_token);
       assert.equal((await resolve(first.visit_token))!.token,second.token);
+    });
+    await t.test('Android Chrome original shortcut resolves a same-day return and a missing local token recovers the active visit',async()=>{
+      assert.equal((await resolve(first.visit_token))!.token,second.token);
+      const resumed=await register();
+      assert.equal(resumed.id,second.id);
+      assert.equal(resumed.visit_token,first.visit_token);
     });
     await t.test('a push or current-ticket link keeps the original shared bridge',async()=>{
       assert.equal(await val<string>('select link_customer_visit($1) v',[second.token]),first.visit_token);

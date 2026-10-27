@@ -33,7 +33,7 @@ export function CustomerTicketTransfer() {
     finally{setBusy(false);}
   }
   return <details className="mt-5 rounded-xl border border-slate-200 bg-white p-4">
-    <summary className="cursor-pointer py-1 text-sm font-semibold">Sudah daftar di Safari atau browser lain?</summary>
+    <summary className="cursor-pointer py-1 text-sm font-semibold">Sudah daftar di Safari, Chrome, atau aplikasi?</summary>
     <p className="mt-3 text-sm leading-6 text-slate-600">Tidak perlu daftar lagi. Di browser, buka tiket Anda dan ketuk Salin tautan tiket. Kembali ke aplikasi Bari Ramen, lalu tempel tautannya di bawah.</p>
     <form onSubmit={connect} className="mt-3">
       <label htmlFor="ticket-transfer" className="text-sm font-medium">Tautan tiket pribadi</label>
@@ -41,6 +41,6 @@ export function CustomerTicketTransfer() {
       <button disabled={busy} className="mt-3 min-h-12 w-full rounded-lg bg-brand px-4 py-3 text-sm font-semibold text-white disabled:opacity-50">{busy?'Menghubungkan…':'Hubungkan tiket saya'}</button>
       {error&&<p role="alert" className="mt-3 text-sm text-amber-800">{error}</p>}
     </form>
-    <p className="mt-3 text-xs leading-5 text-slate-500">Safari dan aplikasi iPhone menyimpan data secara terpisah. Setelah terhubung, keduanya mengikuti kunjungan terbaru melalui tautan pribadi ini selama 30 hari. Jangan bagikan tautan kepada orang lain.</p>
+    <p className="mt-3 text-xs leading-5 text-slate-500">Di iPhone, Safari dan aplikasi menyimpan data secara terpisah. Di Android, gunakan Chrome dan profil yang sama; browser atau profil lain juga perlu dihubungkan. Setelah terhubung, keduanya mengikuti kunjungan terbaru melalui tautan pribadi ini selama 30 hari. Jangan bagikan tautan kepada orang lain.</p>
   </details>;
 }

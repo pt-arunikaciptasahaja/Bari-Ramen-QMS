@@ -1,4 +1,5 @@
 'use client';
+import { CustomerAppGuide } from '@/components/customer-app-guide';
 import { CustomerTicketTransfer } from '@/components/customer-ticket-transfer';
 import { CUSTOMER_VISIT_KEY, resolveCustomerVisit, savedVisitToken, saveVisitToken } from '@/lib/customer-visit';
 import { serviceDate } from '@/lib/queue';
@@ -76,6 +77,7 @@ export default function RegisterPage() {
       <section aria-label="Formulir pendaftaran antrean" className="mt-5 rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
         {checking ? <p role="status" className="text-sm text-slate-500">Memeriksa tiket Anda…</p> : <QueueForm onRegister={submit} />}
       </section>
+      <CustomerAppGuide />
       <p className="mt-4 text-xs leading-6 text-slate-500">Tiket berlaku untuk antrean hari ini. Pendaftaran belum menjamin meja tersedia pada jam tertentu. Urutan panggilan mengikuti ketersediaan meja sesuai jumlah orang. Tetap berada di sekitar restoran.</p>
       <p className="mt-3 text-sm leading-6 text-slate-600">Perlu bantuan? Silakan minta staf di kasir untuk mendaftarkan Anda.</p>
       <Link href="/ticket" className="mt-3 inline-flex min-h-11 items-center text-sm font-semibold underline">Buka tiket saya</Link>

@@ -89,7 +89,7 @@ export function PushPermission({ticketToken,ended}:{ticketToken:string;ended:boo
     {needsInstall ? <div className="mt-3 rounded-lg bg-slate-100 p-3 text-xs leading-6 text-slate-600"><p className="font-semibold">Menggunakan iPhone atau iPad?</p><p className="whitespace-pre-line">1. Buka tautan tiket ini di Safari (bukan browser dalam WhatsApp atau Instagram).
 2. Ketuk Bagikan → Tambahkan ke Layar Utama → Tambah.
 3. Buka ikon Bari Ramen dari Layar Utama. Ketuk Aktifkan notifikasi → Izinkan.
-4. Ketuk Uji notifikasi, lalu periksa Pusat Notifikasi.</p><p className="mt-1">Memerlukan iOS/iPadOS 16.4 atau lebih baru. Jika ikon sudah ada, salin tautan tiket di atas, buka aplikasi dari Layar Utama, lalu pilih Sudah daftar di Safari atau browser lain? untuk menghubungkannya.</p></div>
+4. Ketuk Uji notifikasi, lalu periksa Pusat Notifikasi.</p><p className="mt-1">Memerlukan iOS/iPadOS 16.4 atau lebih baru. Jika ikon sudah ada, salin tautan tiket di atas, buka aplikasi dari Layar Utama, lalu pilih Sudah daftar di Safari, Chrome, atau aplikasi? untuk menghubungkannya.</p></div>
       : supported===false ? <p className="mt-3 text-xs leading-5 text-amber-800">Browser ini belum mendukung notifikasi. Coba buka tautan tiket di Chrome atau Safari, bukan dari browser di dalam aplikasi.</p>
       : !key ? <p className="mt-3 text-xs text-slate-500">Notifikasi belum tersedia. Silakan pantau tiket atau hubungi staf.</p>
       : active ? <><p className="mt-3 flex items-center gap-2 text-sm font-medium text-emerald-800"><Check size={16}/>Notifikasi aktif di perangkat ini</p><div className="mt-3 flex flex-wrap gap-2"><Button disabled={busy} variant="outline" onClick={()=>void change('test')}>Uji notifikasi</Button><Button disabled={busy} variant="ghost" onClick={()=>void change('unsubscribe')}><BellOff size={15}/>Nonaktifkan</Button></div></>
@@ -98,6 +98,8 @@ export function PushPermission({ticketToken,ended}:{ticketToken:string;ended:boo
       <summary className="cursor-pointer font-semibold">Panduan Android</summary>
       <ol className="ml-4 mt-2 list-decimal">
         <li>Buka tautan tiket di Chrome, bukan browser dalam WhatsApp/Instagram.</li>
+        <li>Untuk membuka lewat ikon, ketuk menu ⋮ Chrome → Tambahkan ke Layar Utama atau Instal aplikasi, lalu buka Bari Ramen. Gunakan Chrome dan profil yang sama saat mendaftar.</li>
+        <li>Pastikan nomor tiket sudah muncul. Jika belum, hubungkan tautan tiket dari browser asal; tidak perlu daftar ulang.</li>
         <li>Ketuk Aktifkan notifikasi di atas, lalu pilih Izinkan saat diminta.</li>
         <li>Ketuk Uji notifikasi. Periksa panel notifikasi HP, termasuk saat layar dikunci.</li>
         <li>Jika belum muncul, periksa izin notifikasi Chrome di Pengaturan Android, internet, mode Jangan Ganggu, dan pembatasan baterai Chrome. Coba uji kembali setelah 30 detik.</li>
