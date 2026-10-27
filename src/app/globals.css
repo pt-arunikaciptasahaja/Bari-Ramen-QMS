@@ -236,10 +236,9 @@ body {
 .party-size-options [role="option"]:focus-visible { outline: 2px solid #2d3ee9; outline-offset: 2px; }
 .party-size-options [role="option"]:not([aria-selected="true"]):hover { background: #eef2ff; color: #1d2848; }
 .tv-slide-layer { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
-.tv-slide-incoming { animation: tv-slide-in 800ms cubic-bezier(.22,.61,.36,1) both; }
-.tv-slide-outgoing { animation: tv-slide-out 800ms cubic-bezier(.22,.61,.36,1) both; }
-@keyframes tv-slide-in { from { opacity: 0; transform: translateX(12%); } to { opacity: 1; transform: translateX(0); } }
-@keyframes tv-slide-out { from { opacity: 1; transform: translateX(0); } to { opacity: 0; transform: translateX(-12%); } }
+.tv-slide-incoming { will-change: opacity; animation: tv-slide-in 1500ms ease-in-out both; }
+.tv-slide-outgoing { opacity: 1; }
+@keyframes tv-slide-in { from { opacity: 0; } to { opacity: 1; } }
 @media (prefers-reduced-motion: reduce) { .tv-slide-incoming, .tv-slide-outgoing { animation: none; } .tv-slide-outgoing { visibility: hidden; } }
 
 .customer-clock { letter-spacing: .01em; word-spacing: .08em; display: block; margin-top: 12px; text-align: right; font-size: 12px; line-height: 1.5; color: #52617a; font-variant-numeric: tabular-nums; white-space: nowrap; }

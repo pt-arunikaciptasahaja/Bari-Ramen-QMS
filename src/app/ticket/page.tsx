@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react';
 import { JakartaClock } from "@/components/jakarta-clock";
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { BellRing, Check, Clock3 } from 'lucide-react';
 import { Brand } from '@/components/brand';
 import { GroupBadge } from '@/components/group-badge';
@@ -9,11 +10,12 @@ import { useQueue } from '@/hooks/use-queue';
 import { aheadCount, serviceDate, statusLabel } from '@/lib/queue';
 import { fetchCustomerTicket, fragmentToken, validTicketToken, type CustomerTicket } from '@/lib/tickets';
 import { queueGroups } from '@/lib/groups';
-import { syncCustomerTicket } from '@/lib/customer-ticket-storage';
+import { CUSTOMER_TICKET_KEY, completedTicketDestination, syncCustomerTicket } from '@/lib/customer-ticket-storage';
 import { CALL_POLICY_COPY, customerStatusCopy } from '@/lib/customer-copy';
 import { PushPermission } from '@/components/push-permission';
 
 export default function CustomerTicketPage() {
+  const router = useRouter();
   const [ticket, setTicket] = useState<CustomerTicket | null>(null);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
@@ -29,7 +31,7 @@ export default function CustomerTicketPage() {
   useEffect(() => {
     let token = fragmentToken('t');
     if (!token) { try { token = localStorage.getItem('bari-customer-ticket-v1') ?? ''; } catch { /* Storage is optional. */ } }
-    if (!validTicketToken(token)) { setError('Pindai kode QR pendaftaran di restoran, atau kode QR tiket setelah Anda didaftarkan staf.'); setLoading(false); return; }
+    if (!validTicketToken(token)) { router.replace('/register'); return; }
     let alive = true, busy = false, opened = false;
     const load = async () => {
       if (busy) return;
@@ -37,6 +39,21 @@ export default function CustomerTicketPage() {
       try {
         const result = await fetchCustomerTicket(token, !opened);
         if (alive) {
+          if (!result) { router.replace('/register?visit=ended'); return; }
+          if (result && completedTicketDestination(result.status, result.service_date === serviceDate())) {
+            let saved = '';
+            try { saved = localStorage.getItem(CUSTOMER_TICKET_KEY) ?? ''; syncCustomerTicket(localStorage,token,result.status); } catch { /* Optional storage. */ }
+            if (saved !== token && validTicketToken(saved)) {
+              const newer = await fetchCustomerTicket(saved);
+              if (!alive) return;
+              if (newer && !completedTicketDestination(newer.status,newer.service_date === serviceDate())) {
+                window.history.replaceState(null,'',`/ticket#t=${saved}`);
+                setTicket(null); setTicketToken(''); setRetry(value=>value+1); return;
+              }
+            }
+            if (alive) router.replace(completedTicketDestination(result.status, false)!);
+            return;
+          }
           const firstLoad = !opened; opened = Boolean(result); setTicket(result); setToday(serviceDate());
           if (result) { setTicketToken(token); try { syncCustomerTicket(localStorage,token,result.status,firstLoad); } catch { /* Original link remains usable without storage. */ } }
           setError(result ? '' : 'Tiket tidak tersedia atau masa berlakunya sudah berakhir. Hubungi staf.');
@@ -46,9 +63,10 @@ export default function CustomerTicketPage() {
     };
     void load();
     const timer = setInterval(() => void load(), 15000);
-    window.addEventListener('focus', load); window.addEventListener('online', load);
-    return () => { alive = false; clearInterval(timer); window.removeEventListener('focus', load); window.removeEventListener('online', load); };
-  }, [retry]);
+    const storageChanged = (event: StorageEvent) => { if (event.key === CUSTOMER_TICKET_KEY) void load(); };
+    window.addEventListener('focus', load); window.addEventListener('online', load); window.addEventListener('pageshow',load); window.addEventListener('storage',storageChanged);
+    return () => { alive = false; clearInterval(timer); window.removeEventListener('focus', load); window.removeEventListener('online', load); window.removeEventListener('pageshow',load); window.removeEventListener('storage',storageChanged); };
+  }, [retry, router]);
   const live = board.rows.find(row => row.id === ticket?.id);
   const entry = ticket ? {...ticket, ...(live ? {status:live.status,called_at:live.called_at,call_count:live.call_count,last_call_at:live.last_call_at} : {})} : null;
   const expired = Boolean(entry && today && entry.service_date !== today);
@@ -56,6 +74,7 @@ export default function CustomerTicketPage() {
   useEffect(() => {
     if (!entry || !ticketToken || !['seated','no-show'].includes(entry.status)) return;
     try { syncCustomerTicket(localStorage,ticketToken,entry.status); } catch { /* Storage is optional. */ }
+    setRetry(value=>value+1);
   },[entry?.status,ticketToken]);
   return <>
     <header className="mx-auto max-w-md px-4 py-4"><Brand /><JakartaClock /></header>

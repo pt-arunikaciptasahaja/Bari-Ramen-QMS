@@ -91,7 +91,7 @@ export function TVSlideshow() {
         setFrame(next);
         if (old) retirement.current=setTimeout(()=>{
           setPreviousFrame(null); URL.revokeObjectURL(old.src); objectUrls.current.delete(old.src); retirement.current=null;
-        },850);
+        },1600);
       } catch (error) {
         if (localUrl) { URL.revokeObjectURL(localUrl); objectUrls.current.delete(localUrl); }
         if (alive) setImageIssue(error instanceof Error && /^image-[a-z0-9-]+$/.test(error.message) ? error.message : 'image-network');

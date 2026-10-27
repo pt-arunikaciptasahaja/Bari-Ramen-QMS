@@ -34,6 +34,7 @@ export function QueueForm({
       requestId.current ??= crypto.randomUUID();
       if (onRegister) {
         await onRegister(name, Number(pax), requestId.current, phone);
+        requestId.current = undefined;
         return;
       }
       const entry = await enqueue(

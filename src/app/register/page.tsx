@@ -8,18 +8,22 @@ import { DemoNotice } from '@/components/demo-notice';
 import { QueueForm } from '@/components/queue-form';
 import { registerCustomer } from '@/lib/registration';
 import { fetchCustomerTicket, ticketUrl, validTicketToken } from '@/lib/tickets';
+import { syncCustomerTicket } from '@/lib/customer-ticket-storage';
 import { isDemo } from '@/lib/supabase';
 
 export default function RegisterPage() {
   const router = useRouter();
+  const [returnVisit,setReturnVisit] = useState('');
   const [checking, setChecking] = useState(true);
   useEffect(() => {
+    setReturnVisit(new URLSearchParams(window.location.search).get('visit') ?? '');
     let alive = true;
     async function resume() {
       try {
         const token = localStorage.getItem('bari-customer-ticket-v1') ?? '';
         if (!isDemo && validTicketToken(token)) {
           const ticket = await fetchCustomerTicket(token);
+          if (ticket) syncCustomerTicket(localStorage,token,ticket.status);
           if (alive && ticket && ['waiting', 'called'].includes(ticket.status)) {
             router.replace(`/ticket#t=${token}`);
             return;
@@ -53,6 +57,7 @@ export default function RegisterPage() {
       <p className="eyebrow mb-2 text-cobalt">Sebelum menikmati ramen</p>
       <h1 className="text-2xl font-semibold tracking-tight">Ambil nomor antrean Anda</h1>
       <p className="mt-2 text-sm leading-6 text-slate-600">Senang menyambut Anda di Bari Ramen. Cukup satu pendaftaran untuk setiap rombongan; tiket akan langsung terbuka di HP Anda.</p>
+      {returnVisit && <p role="status" className="mt-4 rounded-lg bg-slate-50 p-4 text-sm leading-6 text-slate-700">{returnVisit === 'complete' ? 'Kunjungan sebelumnya sudah selesai. Datang lagi? Isi formulir ini untuk mendapatkan nomor antrean baru.' : 'Antrean sebelumnya sudah berakhir. Silakan daftar kembali untuk mendapatkan nomor antrean baru.'}</p>}
       <section aria-label="Formulir pendaftaran antrean" className="mt-5 rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
         {checking ? <p role="status" className="text-sm text-slate-500">Memeriksa tiket Anda…</p> : <QueueForm onRegister={submit} />}
       </section>
