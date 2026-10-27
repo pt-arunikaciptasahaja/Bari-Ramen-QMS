@@ -1,5 +1,6 @@
 "use client";
 
+import { JakartaClock } from "@/components/jakarta-clock";
 import Link from "next/link";
 import { Brand } from "@/components/brand";
 import { DemoNotice } from "@/components/demo-notice";
@@ -16,7 +17,7 @@ export default function Home() {
       <DemoNotice />
       <header className="border-b border-slate-200 bg-white px-4 py-4">
         <div className="mx-auto max-w-5xl">
-          <Brand />
+          <Brand /><JakartaClock />
         </div>
       </header>
       <main className="mx-auto w-full max-w-md flex-1 px-4 py-6 sm:py-8">

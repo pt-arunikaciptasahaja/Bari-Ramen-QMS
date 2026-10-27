@@ -1,5 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
+import { JakartaClock } from "@/components/jakarta-clock";
 import Link from 'next/link';
 import { BellRing, Check, Clock3 } from 'lucide-react';
 import { Brand } from '@/components/brand';
@@ -8,6 +9,7 @@ import { useQueue } from '@/hooks/use-queue';
 import { aheadCount, serviceDate, statusLabel } from '@/lib/queue';
 import { fetchCustomerTicket, fragmentToken, validTicketToken, type CustomerTicket } from '@/lib/tickets';
 import { queueGroups } from '@/lib/groups';
+import { syncCustomerTicket } from '@/lib/customer-ticket-storage';
 import { CALL_POLICY_COPY, customerStatusCopy } from '@/lib/customer-copy';
 import { PushPermission } from '@/components/push-permission';
 
@@ -35,8 +37,8 @@ export default function CustomerTicketPage() {
       try {
         const result = await fetchCustomerTicket(token, !opened);
         if (alive) {
-          opened = Boolean(result); setTicket(result); setToday(serviceDate());
-          if (result) { setTicketToken(token); try { localStorage.setItem('bari-customer-ticket-v1',token); } catch { /* Original link remains usable without storage. */ } }
+          const firstLoad = !opened; opened = Boolean(result); setTicket(result); setToday(serviceDate());
+          if (result) { setTicketToken(token); try { syncCustomerTicket(localStorage,token,result.status,firstLoad); } catch { /* Original link remains usable without storage. */ } }
           setError(result ? '' : 'Tiket tidak tersedia atau masa berlakunya sudah berakhir. Hubungi staf.');
         }
       } catch (e) { if (alive) setError(e instanceof Error ? e.message : 'Tiket belum dapat dimuat.'); }
@@ -51,15 +53,19 @@ export default function CustomerTicketPage() {
   const entry = ticket ? {...ticket, ...(live ? {status:live.status,called_at:live.called_at,call_count:live.call_count,last_call_at:live.last_call_at} : {})} : null;
   const expired = Boolean(entry && today && entry.service_date !== today);
   const called = entry?.status === 'called' && !expired;
+  useEffect(() => {
+    if (!entry || !ticketToken || !['seated','no-show'].includes(entry.status)) return;
+    try { syncCustomerTicket(localStorage,ticketToken,entry.status); } catch { /* Storage is optional. */ }
+  },[entry?.status,ticketToken]);
   return <>
-    <header className="mx-auto max-w-md px-4 py-4"><Brand /></header>
+    <header className="mx-auto max-w-md px-4 py-4"><Brand /><JakartaClock /></header>
     <main className="mx-auto max-w-md px-4 pb-8">
       <h1 className="text-xl font-semibold">{called ? 'Giliran Anda sudah tiba' : 'Tiket antrean Anda'}</h1>
       {loading && <p role="status" className="mt-5 text-sm text-slate-500">Membuka tiket…</p>}
       {entry && <>
         <section className="mt-4 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
           <div className="p-5 text-center">
-            <p className="text-xs text-slate-500">Nomor antrean</p>
+            <p className="text-xs text-slate-500">{entry.status === "seated" ? "Nomor kunjungan sebelumnya" : "Nomor antrean"}</p>
             <p className={`mx-auto my-3 w-fit rounded-lg px-4 py-2 font-mono text-5xl font-semibold tabular-nums ${queueGroups[entry.group_code].light}`}>{entry.queue_number}</p>
             <GroupBadge group={entry.group_code} pax={entry.pax} />
             <p role="status" aria-live="polite" className={`mt-4 flex items-center justify-center gap-2 rounded-lg px-3 py-3 text-sm font-semibold ${called ? 'bg-amber-50 text-amber-900' : entry.status === 'seated' ? 'bg-emerald-50 text-emerald-800' : 'bg-slate-100 text-slate-700'}`}>
@@ -77,8 +83,10 @@ export default function CustomerTicketPage() {
         {called && (entry.call_count ?? 1) >= 3 && <p className="mt-4 rounded-lg bg-amber-50 p-3 text-sm font-semibold text-amber-900">Ini panggilan terakhir untuk nomor Anda. Silakan segera menuju kasir.</p>}
         <p className="mt-4 text-sm leading-6 text-slate-600">{customerStatusCopy(entry.status, expired)}</p>
         {!expired && ['waiting','called'].includes(entry.status) && <p className="mt-3 text-xs leading-5 text-slate-500">{CALL_POLICY_COPY}</p>}
+        {(entry.status === 'seated' || expired) && <Link href="/register" className="mt-4 flex min-h-12 items-center justify-center rounded-lg bg-brand px-4 py-3 text-sm font-semibold text-white">Daftar antrean baru</Link>}
+        {entry.status === 'seated' && <p className="mt-2 text-xs leading-5 text-slate-500">Kunjungan ini sudah selesai. Untuk kunjungan berikutnya, daftar kembali untuk mendapatkan nomor baru.</p>}
         <PushPermission ticketToken={ticketToken} ended={expired || entry.status==='seated' || entry.status==='no-show'} />
-        <p className="mt-3 text-xs leading-5 text-slate-500">Simpan tautan tiket ini dan tetap berada di sekitar restoran. Anda dapat membukanya kembali selama antrean hari ini.</p>
+        <p className="mt-3 text-xs leading-5 text-slate-500">{entry.status === 'seated' ? 'Tautan ini tetap menampilkan tiket kunjungan sebelumnya.' : 'Simpan tautan tiket ini dan tetap berada di sekitar restoran. Anda dapat membukanya kembali selama antrean hari ini.'}</p>
         <p className="mt-2 text-xs text-slate-500">{board.connection} · Berlaku untuk hari ini</p>
       </>}
       {(error || board.error) && <p role="alert" className="mt-4 rounded-lg bg-amber-50 p-3 text-sm text-amber-900">{error || board.error}{entry ? ' Data mungkin belum terbaru.' : ''}</p>}

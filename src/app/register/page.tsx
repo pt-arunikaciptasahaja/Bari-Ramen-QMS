@@ -1,4 +1,5 @@
 'use client';
+import { JakartaClock } from "@/components/jakarta-clock";
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
@@ -47,7 +48,7 @@ export default function RegisterPage() {
   }
   return <>
     <DemoNotice />
-    <header className="mx-auto max-w-md px-4 py-5"><Brand /></header>
+    <header className="mx-auto max-w-md px-4 py-5"><Brand /><JakartaClock /></header>
     <main className="mx-auto max-w-md px-4 pb-8">
       <p className="eyebrow mb-2 text-cobalt">Sebelum menikmati ramen</p>
       <h1 className="text-2xl font-semibold tracking-tight">Ambil nomor antrean Anda</h1>

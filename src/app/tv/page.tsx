@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import { Maximize } from "lucide-react";
+import { formatJakartaClock } from "@/lib/jakarta-clock";
 import { TVSlideshow } from "@/components/tv-slideshow";
 import { Brand } from "@/components/brand";
 import { DemoNotice } from "@/components/demo-notice";
@@ -32,7 +33,6 @@ export default function TVPage() {
 function TVDisplay() {
   const { rows, loading, error } = useQueue();
   const [now, setNow] = useState(0);
-  const [clock, setClock] = useState("");
   const { status: soundStatus, ring: bell } = useTVAudio();
   const [displayError, setDisplayError] = useState("");
   const [flash, setFlash] = useState(0);
@@ -43,7 +43,6 @@ function TVDisplay() {
   useEffect(() => {
     const tick = () => {
       const value = Date.now(); setNow(value);
-      setClock(new Intl.DateTimeFormat("en-GB", { timeZone: "Asia/Jakarta", hour: "2-digit", minute: "2-digit" }).format(value));
     };
     tick();
     const timer = setInterval(tick, 1000);
@@ -75,9 +74,9 @@ function TVDisplay() {
     <div className="tv-board" lang="en">
       <DemoNotice language="en" />
       <header className="tv-header">
-        <Brand homeLabel="Bari Ramen home" size="large" subtitle="" />
+        <Brand showJapanese={false} homeLabel="Bari Ramen home" size="large" subtitle="" />
         <div className="tv-header-tools">
-          <time aria-label="Jakarta time" className="tv-clock">{clock}</time>
+          <time aria-label="Jakarta time" className="tv-clock">{formatJakartaClock(now)}</time>
           <button aria-label="Toggle fullscreen" className="tv-fullscreen" onClick={() => {
             if (!document.fullscreenElement) void document.documentElement.requestFullscreen().catch(() => setDisplayError("Fullscreen is not available in this browser."));
             else void document.exitFullscreen().catch(() => setDisplayError("Could not exit fullscreen."));

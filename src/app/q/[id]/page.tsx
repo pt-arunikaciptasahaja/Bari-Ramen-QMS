@@ -1,4 +1,5 @@
 "use client";
+import { JakartaClock } from "@/components/jakarta-clock";
 import Link from "next/link";
 import { use, useCallback, useEffect, useState } from "react";
 import { ArrowLeft, BellRing, Check, Clock3, Users } from "lucide-react";
@@ -91,7 +92,7 @@ export default function TrackerPage({
     <>
       <DemoNotice />
       <header className="mx-auto w-full max-w-md px-4 py-4">
-        <Brand />
+        <Brand /><JakartaClock />
       </header>
       <main className="mx-auto w-full max-w-md px-4 pb-6 pt-2">
         {loading ? (
@@ -192,6 +193,7 @@ export default function TrackerPage({
             <p className="mt-4 text-xs leading-5 text-slate-500">
               {customerStatusCopy(entry.status, Boolean(expired))}
             </p>
+            {entry.status === 'seated' && <Link href="/register" className="mt-4 flex min-h-12 items-center justify-center rounded-lg bg-brand px-4 py-3 text-sm font-semibold text-white">Daftar antrean baru</Link>}
             {called && (entry.call_count ?? 1) >= 3 && <p className="mt-3 text-sm font-semibold text-amber-900">Ini panggilan terakhir untuk nomor Anda. Silakan segera menuju kasir.</p>}
             {!expired && ['waiting','called'].includes(entry.status) && <p className="mt-3 text-xs leading-5 text-slate-500">{CALL_POLICY_COPY}</p>}
             <p className="mt-4 flex items-center justify-center gap-2 text-xs text-slate-500">
