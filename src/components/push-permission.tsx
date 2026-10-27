@@ -89,7 +89,7 @@ export function PushPermission({ticketToken,ended}:{ticketToken:string;ended:boo
     {needsInstall ? <div className="mt-3 rounded-lg bg-slate-100 p-3 text-xs leading-6 text-slate-600"><p className="font-semibold">Menggunakan iPhone atau iPad?</p><p className="whitespace-pre-line">1. Buka tautan tiket ini di Safari (bukan browser dalam WhatsApp atau Instagram).
 2. Ketuk Bagikan → Tambahkan ke Layar Utama → Tambah.
 3. Buka ikon Bari Ramen dari Layar Utama. Ketuk Aktifkan notifikasi → Izinkan.
-4. Ketuk Uji notifikasi, lalu periksa Pusat Notifikasi.</p><p className="mt-1">Memerlukan iOS/iPadOS 16.4 atau lebih baru. Jika tiket belum terbuka dari ikon, minta bantuan staf.</p></div>
+4. Ketuk Uji notifikasi, lalu periksa Pusat Notifikasi.</p><p className="mt-1">Memerlukan iOS/iPadOS 16.4 atau lebih baru. Jika ikon sudah ada, salin tautan tiket di atas, buka aplikasi dari Layar Utama, lalu pilih Sudah daftar di Safari atau browser lain? untuk menghubungkannya.</p></div>
       : supported===false ? <p className="mt-3 text-xs leading-5 text-amber-800">Browser ini belum mendukung notifikasi. Coba buka tautan tiket di Chrome atau Safari, bukan dari browser di dalam aplikasi.</p>
       : !key ? <p className="mt-3 text-xs text-slate-500">Notifikasi belum tersedia. Silakan pantau tiket atau hubungi staf.</p>
       : active ? <><p className="mt-3 flex items-center gap-2 text-sm font-medium text-emerald-800"><Check size={16}/>Notifikasi aktif di perangkat ini</p><div className="mt-3 flex flex-wrap gap-2"><Button disabled={busy} variant="outline" onClick={()=>void change('test')}>Uji notifikasi</Button><Button disabled={busy} variant="ghost" onClick={()=>void change('unsubscribe')}><BellOff size={15}/>Nonaktifkan</Button></div></>

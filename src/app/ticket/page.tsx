@@ -12,6 +12,8 @@ import { fetchCustomerTicket, fragmentToken, validTicketToken, type CustomerTick
 import { queueGroups } from '@/lib/groups';
 import { CUSTOMER_TICKET_KEY, completedTicketDestination, syncCustomerTicket } from '@/lib/customer-ticket-storage';
 import { CALL_POLICY_COPY, customerStatusCopy } from '@/lib/customer-copy';
+import { CUSTOMER_VISIT_KEY, linkCustomerVisit, resolveCustomerVisit, savedVisitToken, saveVisitToken } from '@/lib/customer-visit';
+import { ticketUrl } from '@/lib/tickets';
 import { PushPermission } from '@/components/push-permission';
 
 export default function CustomerTicketPage() {
@@ -22,6 +24,8 @@ export default function CustomerTicketPage() {
   const [today, setToday] = useState('');
   const [retry, setRetry] = useState(0);
   const [ticketToken, setTicketToken] = useState('');
+  const [visitToken,setVisitToken] = useState('');
+  const [copyMessage,setCopyMessage] = useState('');
   useEffect(() => {
     const changed = () => { setTicket(null); setTicketToken(''); setError(''); setLoading(true); setRetry(value => value + 1); };
     window.addEventListener('hashchange', changed);
@@ -29,7 +33,7 @@ export default function CustomerTicketPage() {
   }, []);
   const board = useQueue(false, Boolean(ticket));
   useEffect(() => {
-    let token = fragmentToken('t');
+    let token = fragmentToken('t') || savedVisitToken();
     if (!token) { try { token = localStorage.getItem('bari-customer-ticket-v1') ?? ''; } catch { /* Storage is optional. */ } }
     if (!validTicketToken(token)) { router.replace('/register'); return; }
     let alive = true, busy = false, opened = false;
@@ -37,13 +41,21 @@ export default function CustomerTicketPage() {
       if (busy) return;
       busy = true;
       try {
-        const result = await fetchCustomerTicket(token, !opened);
+        const resolved = await resolveCustomerVisit(token);
+        const currentToken = resolved || token;
+        const result = await fetchCustomerTicket(currentToken, !opened);
+        if (!alive) return;
+        let linked = resolved ? token : '';
+        if (!linked && result && !completedTicketDestination(result.status,result.service_date===serviceDate())) linked=await linkCustomerVisit(currentToken);
+        if (!alive) return;
+        if (linked) { saveVisitToken(linked);setVisitToken(linked); token=linked; if(fragmentToken('t')!==linked)window.history.replaceState(null,'',`/ticket#t=${linked}`); }
+        else { try { if(savedVisitToken()===token)localStorage.removeItem(CUSTOMER_VISIT_KEY); } catch { /* Optional storage. */ } }
         if (alive) {
           if (!result) { router.replace('/register?visit=ended'); return; }
           if (result && completedTicketDestination(result.status, result.service_date === serviceDate())) {
             let saved = '';
-            try { saved = localStorage.getItem(CUSTOMER_TICKET_KEY) ?? ''; syncCustomerTicket(localStorage,token,result.status); } catch { /* Optional storage. */ }
-            if (saved !== token && validTicketToken(saved)) {
+            try { saved = localStorage.getItem(CUSTOMER_TICKET_KEY) ?? ''; syncCustomerTicket(localStorage,currentToken,result.status); } catch { /* Optional storage. */ }
+            if (saved !== currentToken && validTicketToken(saved)) {
               const newer = await fetchCustomerTicket(saved);
               if (!alive) return;
               if (newer && !completedTicketDestination(newer.status,newer.service_date === serviceDate())) {
@@ -55,7 +67,7 @@ export default function CustomerTicketPage() {
             return;
           }
           const firstLoad = !opened; opened = Boolean(result); setTicket(result); setToday(serviceDate());
-          if (result) { setTicketToken(token); try { syncCustomerTicket(localStorage,token,result.status,firstLoad); } catch { /* Original link remains usable without storage. */ } }
+          if (result) { setTicketToken(currentToken); try { syncCustomerTicket(localStorage,currentToken,result.status,firstLoad || currentToken !== token); } catch { /* Original link remains usable without storage. */ } }
           setError(result ? '' : 'Tiket tidak tersedia atau masa berlakunya sudah berakhir. Hubungi staf.');
         }
       } catch (e) { if (alive) setError(e instanceof Error ? e.message : 'Tiket belum dapat dimuat.'); }
@@ -63,7 +75,7 @@ export default function CustomerTicketPage() {
     };
     void load();
     const timer = setInterval(() => void load(), 15000);
-    const storageChanged = (event: StorageEvent) => { if (event.key === CUSTOMER_TICKET_KEY) void load(); };
+    const storageChanged = (event: StorageEvent) => { if (event.key === CUSTOMER_TICKET_KEY || event.key === CUSTOMER_VISIT_KEY) void load(); };
     window.addEventListener('focus', load); window.addEventListener('online', load); window.addEventListener('pageshow',load); window.addEventListener('storage',storageChanged);
     return () => { alive = false; clearInterval(timer); window.removeEventListener('focus', load); window.removeEventListener('online', load); window.removeEventListener('pageshow',load); window.removeEventListener('storage',storageChanged); };
   }, [retry, router]);
@@ -104,6 +116,13 @@ export default function CustomerTicketPage() {
         {!expired && ['waiting','called'].includes(entry.status) && <p className="mt-3 text-xs leading-5 text-slate-500">{CALL_POLICY_COPY}</p>}
         {(entry.status === 'seated' || expired) && <Link href="/register" className="mt-4 flex min-h-12 items-center justify-center rounded-lg bg-brand px-4 py-3 text-sm font-semibold text-white">Daftar antrean baru</Link>}
         {entry.status === 'seated' && <p className="mt-2 text-xs leading-5 text-slate-500">Kunjungan ini sudah selesai. Untuk kunjungan berikutnya, daftar kembali untuk mendapatkan nomor baru.</p>}
+        <section className="mt-4 rounded-xl border border-slate-200 bg-white p-4">
+          <h2 className="text-sm font-semibold">Buka tiket di aplikasi iPhone</h2>
+          <p className="mt-2 text-sm leading-6 text-slate-600">Jika Bari Ramen sudah ada di Layar Utama, salin tautan ini. Buka aplikasi, pilih Sudah daftar di Safari atau browser lain?, lalu tempel tautannya. Tidak perlu daftar ulang.</p>
+          <button disabled={!visitToken} onClick={async()=>{try{await navigator.clipboard.writeText(ticketUrl(window.location.origin,visitToken));setCopyMessage('Tautan disalin. Buka aplikasi Bari Ramen dari Layar Utama dan hubungkan tiket Anda.');}catch{setCopyMessage('Salin tautan dari kolom di bawah, lalu tempel di aplikasi Bari Ramen.');}}} className="mt-3 min-h-12 w-full rounded-lg bg-brand px-4 py-3 text-sm font-semibold text-white disabled:opacity-50">Salin tautan tiket</button>
+          {copyMessage&&<><p role="status" className="mt-2 text-sm leading-6 text-slate-600">{copyMessage}</p><label className="mt-2 block text-xs text-slate-500">Tautan pribadi<input readOnly value={ticketUrl(window.location.origin,visitToken)} onFocus={event=>event.target.select()} className="mt-1 min-h-11 w-full rounded-lg border border-slate-300 px-3" /></label></>}
+          <p className="mt-2 text-xs leading-5 text-slate-500">Tautan ini menghubungkan kunjungan Anda selama 30 hari. Simpan untuk Anda sendiri.</p>
+        </section>
         <PushPermission ticketToken={ticketToken} ended={expired || entry.status==='seated' || entry.status==='no-show'} />
         <p className="mt-3 text-xs leading-5 text-slate-500">{entry.status === 'seated' ? 'Tautan ini tetap menampilkan tiket kunjungan sebelumnya.' : 'Simpan tautan tiket ini dan tetap berada di sekitar restoran. Anda dapat membukanya kembali selama antrean hari ini.'}</p>
         <p className="mt-2 text-xs text-slate-500">{board.connection} · Berlaku untuk hari ini</p>
