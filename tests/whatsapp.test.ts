@@ -6,10 +6,10 @@ import type { QueueEntry } from "../src/lib/queue";
 const start = Date.parse("2026-10-16T03:00:00Z");
 const entry = {
   customer_name: "Budi & keluarga", customer_phone: "0812-3456-7890", queue_number: "B-006",
-  status: "called", called_at: new Date(start).toISOString(), service_date: "2026-10-16",
+  status: "called", call_count: 1, called_at: new Date(start).toISOString(), service_date: "2026-10-16",
 } as QueueEntry;
 
-test("WhatsApp unlocks at 180 seconds, independently of TV sound", () => {
+test("WhatsApp unlocks at 180 seconds from first call, independently of TV sound", () => {
   assert.equal(whatsappState(entry, start).remaining, 180);
   assert.equal(whatsappState(entry, start + 179999).enabled, false);
   assert.equal(whatsappState(entry, start + 180000).enabled, true);
@@ -20,7 +20,7 @@ test("WhatsApp unlocks at 180 seconds, independently of TV sound", () => {
 test("WhatsApp blocks terminal, waiting, missing, malformed, future and expired tickets", () => {
   for (const patch of [
     { status: "waiting" }, { status: "seated" }, { status: "no-show" },
-    { customer_phone: null }, { customer_phone: "not-a-number" },
+    { call_count: 0 }, { customer_phone: null }, { customer_phone: "not-a-number" },
     { called_at: null }, { called_at: "invalid" },
     { called_at: new Date(start + 240000).toISOString() }, { service_date: "2026-10-15" },
   ]) {

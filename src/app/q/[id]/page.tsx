@@ -1,9 +1,11 @@
 "use client";
+import { JakartaClock } from "@/components/jakarta-clock";
 import Link from "next/link";
 import { use, useCallback, useEffect, useState } from "react";
 import { ArrowLeft, BellRing, Check, Clock3, Users } from "lucide-react";
 import { Brand } from "@/components/brand";
 import { DemoNotice } from "@/components/demo-notice";
+import { CALL_POLICY_COPY, customerStatusCopy } from '@/lib/customer-copy';
 import { Card } from "@/components/ui/card";
 import { useQueue } from "@/hooks/use-queue";
 import { fetchTicket } from "@/lib/api";
@@ -80,7 +82,7 @@ export default function TrackerPage({
   const entry = ticket
     ? {
         ...ticket,
-        ...(live ? { status: live.status, called_at: live.called_at } : {}),
+        ...(live ? { status: live.status, called_at: live.called_at, call_count: live.call_count, last_call_at: live.last_call_at } : {}),
       }
     : null;
   const expired = entry && today && entry.service_date !== today;
@@ -90,7 +92,7 @@ export default function TrackerPage({
     <>
       <DemoNotice />
       <header className="mx-auto w-full max-w-md px-4 py-4">
-        <Brand />
+        <Brand /><JakartaClock />
       </header>
       <main className="mx-auto w-full max-w-md px-4 pb-6 pt-2">
         {loading ? (
@@ -151,6 +153,8 @@ export default function TrackerPage({
                     ? "Antrean sudah berakhir"
                     : statusLabel[entry.status]}
                 </span>
+                {called && <p role="status" className="mt-3 text-lg font-semibold text-amber-900">Panggilan {entry.call_count ?? 1}/3</p>}
+                {called && entry.called_at && <p className="mt-2 text-xs text-slate-600">Panggilan pertama pukul {new Date(entry.called_at).toLocaleTimeString('id-ID',{timeZone:'Asia/Jakarta',hour:'2-digit',minute:'2-digit'})} WIB</p>}
               </div>
               <div className="p-4">
                 {entry.status === "waiting" && !expired && (
@@ -159,7 +163,7 @@ export default function TrackerPage({
                       <span className="font-mono font-semibold tabular-nums">
                         {board.loading || board.error ? "…" : ahead}
                       </span>{" "}
-                      antrean di depan Anda
+                      rombongan dalam kelompok {entry.group_code} di depan Anda
                     </p>
                     <p className="mt-1 text-xs text-slate-500">
                       Kelompok {entry.group_code}, sesuai jumlah orang.
@@ -169,7 +173,7 @@ export default function TrackerPage({
                 <div className="flex items-center justify-between text-sm">
                   <span className="flex items-center gap-2 text-slate-500">
                     <Users size={17} />
-                    Jumlah Orang
+                    Jumlah orang
                   </span>
                   <span>
                     <span className="font-mono font-medium tabular-nums">
@@ -187,14 +191,11 @@ export default function TrackerPage({
               </div>
             </Card>
             <p className="mt-4 text-xs leading-5 text-slate-500">
-              {expired
-                ? "Nomor ini hanya berlaku pada tanggal pendaftaran."
-                : entry.status === "no-show"
-                  ? "Antrean Anda telah dilewati. Hubungi staf untuk bantuan."
-                  : entry.status === "seated"
-                    ? "Meja sudah diberikan."
-                    : "Tetap di sekitar restoran. Urutan pemanggilan menyesuaikan kapasitas meja yang tersedia."}
+              {customerStatusCopy(entry.status, Boolean(expired))}
             </p>
+            {entry.status === 'seated' && <Link href="/register" className="mt-4 flex min-h-12 items-center justify-center rounded-lg bg-brand px-4 py-3 text-sm font-semibold text-white">Daftar antrean baru</Link>}
+            {called && (entry.call_count ?? 1) >= 3 && <p className="mt-3 text-sm font-semibold text-amber-900">Ini panggilan terakhir untuk nomor Anda. Silakan segera menuju kasir.</p>}
+            {!expired && ['waiting','called'].includes(entry.status) && <p className="mt-3 text-xs leading-5 text-slate-500">{CALL_POLICY_COPY}</p>}
             <p className="mt-4 flex items-center justify-center gap-2 text-xs text-slate-500">
               <span className="h-1.5 w-1.5 rounded-full bg-emerald-600" />
               {board.connection} · Halaman diperbarui otomatis

@@ -19,10 +19,11 @@ import { DemoNotice } from "@/components/demo-notice";
 import { QueueForm } from "@/components/queue-form";
 import { RegistrationQr } from "@/components/registration-qr";
 import { PickupScreenSetup, TicketAccessTools } from "@/components/ticket-handoff";
+import { QueueEditBadge, QueueRecoveryAction } from "@/components/queue-recovery";
 import { QueueHistory } from "@/components/queue-history";
 import { GroupBadge } from "@/components/group-badge";
 import { groupCodes, queueGroups } from "@/lib/groups";
-import { whatsappLink, whatsappMessage, whatsappState } from "@/lib/whatsapp";
+import { BARI_WHATSAPP, whatsappLink, whatsappMessage, whatsappState } from "@/lib/whatsapp";
 import { StaffLogin } from "@/components/staff-login";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -58,7 +59,7 @@ export default function StaffPage() {
   async function retryNotification(entry: QueueEntry) {
     if(lock.current || isDemo)return;
     lock.current=true;setPending(entry.id);setActionError('');
-    try { await callQueue(entry.id,true); setMessage(`Pengiriman notifikasi ${entry.queue_number} diproses. Tidak ada panggilan baru.`); await queue.refresh(); }
+    try { await callQueue(entry.id,true); setMessage(`Pengiriman ulang notifikasi ${entry.queue_number} sedang diproses. Jumlah panggilan tetap sama.`); await queue.refresh(); }
     catch(e) {setActionError(e instanceof Error ? e.message : 'Notifikasi belum dapat diproses. Coba lagi.');}
     finally {lock.current=false;setPending(null);}
   }
@@ -68,16 +69,16 @@ export default function StaffPage() {
     if (!latest) return;
     const href = whatsappLink(latest, Date.now());
     if (!href) return;
-    if (!window.confirm(`Buka pesan untuk ${latest.customer_phone}?\n\n${whatsappMessage(latest)}\n\nPastikan tamu bersedia dihubungi melalui WhatsApp. Anda masih perlu menekan Kirim di WhatsApp.`)) return;
+    if (!window.confirm(`Buka pesan untuk ${latest.customer_phone}?\n\n${whatsappMessage(latest)}\n\nGunakan akun WhatsApp restoran ${BARI_WHATSAPP}. Pastikan tamu bersedia dihubungi melalui WhatsApp. Anda masih perlu menekan Kirim di WhatsApp.`)) return;
     window.open(href, "_blank", "noopener,noreferrer");
-    setMessage(`Silakan lanjutkan di WhatsApp untuk ${latest.queue_number}. Pesan belum dikirim otomatis.`);
+    setMessage(`Silakan lanjutkan di WhatsApp untuk ${latest.queue_number}. Tekan Kirim di WhatsApp untuk mengirim pesan.`);
   }
   async function act(entry: QueueEntry, status: QueueStatus) {
     if (lock.current) return;
     if (
       status === "no-show" &&
       !window.confirm(
-        `Lewati antrean ${entry.queue_number} atas nama ${entry.customer_name}?`,
+        `Lewati antrean ${entry.queue_number} atas nama ${entry.customer_name}? Tiket akan dipindahkan ke riwayat. Jika terjadi kesalahan, tiket dapat dikembalikan ke antrean hari ini.`,
       )
     )
       return;
@@ -88,7 +89,7 @@ export default function StaffPage() {
     try {
       await changeStatus(entry.id, status);
       setMessage(
-        `${entry.queue_number} ${status === "called" ? "dipanggil" : status === "seated" ? "selesai, meja diberikan" : "dilewati"}.`,
+        `${entry.queue_number} ${status === "called" ? "dipanggil" : status === "seated" ? "telah dikonfirmasi mendapat meja" : "dilewati"}.`,
       );
       await queue.refresh();
     } catch (e) {
@@ -111,19 +112,19 @@ export default function StaffPage() {
   );
   const stats = [
     {
-      label: "Menunggu",
+      label: "Menunggu meja",
       value: active.filter((r) => r.status === "waiting").length,
       icon: Clock3,
       color: "bg-amber-50 text-amber-700",
     },
     {
-      label: "Sedang dipanggil",
+      label: "Dipanggil",
       value: active.filter((r) => r.status === "called").length,
       icon: BellRing,
       color: "bg-blue-50 text-blue-700",
     },
     {
-      label: "Sudah mendapat meja",
+      label: "Rombongan mendapat meja",
       value: queue.rows.filter((r) => r.status === "seated").length,
       icon: CheckCheck,
       color: "bg-emerald-50 text-emerald-700",
@@ -134,11 +135,8 @@ export default function StaffPage() {
       <DemoNotice />
       <header className="border-b border-slate-200 bg-white">
         <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-5 px-5 py-5 sm:px-8">
-          <Brand />
+          <Brand subtitle="Dashboard staf" />
           <div className="flex items-center gap-3">
-            <span className="hidden rounded-lg bg-paper px-3 py-2 text-xs text-slate-500 sm:block">
-              DASHBOARD STAF
-            </span>
             <Button asChild variant="outline">
               <Link href="/tv" target="_blank" rel="noreferrer">
                 <ExternalLink size={16} />
@@ -276,9 +274,9 @@ export default function StaffPage() {
                 <thead className="bg-slate-50">
                   <tr>
                     <TableHead>Nomor</TableHead>
-                    <TableHead>Nama Tamu</TableHead>
+                    <TableHead>Nama tamu</TableHead>
                     <TableHead>Telepon / WhatsApp</TableHead>
-                    <TableHead>Jumlah</TableHead>
+                    <TableHead>Jumlah orang</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Aksi</TableHead>
                   </tr>
@@ -286,7 +284,7 @@ export default function StaffPage() {
                 <tbody>
                   {filtered.map((entry) => {
                     const contact = whatsappState(entry, now);
-                    const contactHelp = !contact.hasPhone ? "Nomor belum diisi / tidak valid" : entry.status !== "called" ? "Aktif 3 menit setelah dipanggil" : contact.enabled ? "Lanjutkan kirim di WhatsApp" : `Aktif dalam ${String(Math.floor(contact.remaining / 60)).padStart(2, "0")}:${String(contact.remaining % 60).padStart(2, "0")}`;
+                    const contactHelp = !contact.hasPhone ? "Nomor belum tersedia atau tidak valid" : entry.status !== "called" ? "Aktif 3 menit setelah panggilan pertama" : contact.enabled ? `Gunakan WhatsApp restoran ${BARI_WHATSAPP}` : contact.remaining === 0 ? "Menunggu pembaruan antrean" : `Aktif dalam ${String(Math.floor(contact.remaining / 60)).padStart(2, "0")}:${String(contact.remaining % 60).padStart(2, "0")}`;
                     return (
                     <tr
                       key={entry.id}
@@ -295,10 +293,11 @@ export default function StaffPage() {
                       <TableCell className="whitespace-nowrap font-mono text-lg font-semibold tracking-normal tabular-nums">
                         <span className={`inline-flex rounded-md px-2 py-1 ${queueGroups[entry.group_code].light}`}>{entry.queue_number}</span>
                         <TicketAccessTools entry={entry} onChanged={() => void queue.refresh()} />
+                        <QueueEditBadge entry={entry} />
                       </TableCell>
                       <TableCell className="min-w-[110px] font-semibold">
                         {entry.customer_name}
-                        {entry.source === "online" && <p className="mt-1 text-xs font-normal text-slate-500">QR Online</p>}
+                        {entry.source === "online" && <p className="mt-1 text-xs font-normal text-slate-500">Daftar mandiri</p>}
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-3">
@@ -325,11 +324,11 @@ export default function StaffPage() {
                         {entry.status === "waiting" && <p className="mt-1 whitespace-nowrap text-xs text-slate-500"><span className="font-mono tabular-nums">{now ? elapsed(entry.created_at, now) : 0}</span> menit</p>}
                         {entry.status === "called" && entry.called_at && (
                           <p className="mt-1 whitespace-nowrap font-mono text-xs tabular-nums text-slate-500">
-                            {callTimeFormat.format(new Date(entry.called_at))} WIB
+                            Panggilan {entry.call_count ?? 1}/3 · {callTimeFormat.format(new Date(entry.called_at))} WIB
                           </p>
                         )}
                         {entry.status === 'called' && !isDemo && <div className="mt-2 text-[11px] leading-5 text-slate-500">
-                          <p>{entry.push_status==='accepted'?'Notifikasi diajukan ke perangkat':entry.push_status==='pending'?'Mengirim notifikasi…':entry.push_status==='failed'?'Notifikasi belum berhasil': 'Notifikasi tamu belum aktif'}</p>
+                          <p>{entry.push_status==='accepted'?'Notifikasi diproses layanan pengiriman':entry.push_status==='pending'?'Mengirim notifikasi…':entry.push_status==='failed'?'Notifikasi belum berhasil': 'Belum ada notifikasi untuk panggilan ini'}</p>
                           {entry.push_status && entry.push_status!=='accepted' && <button disabled={pending!==null} onClick={()=>void retryNotification(entry)} className="min-h-9 underline disabled:opacity-50">Coba kirim lagi</button>}
                         </div>}
                       </TableCell>
@@ -351,7 +350,7 @@ export default function StaffPage() {
                               onClick={() => void act(entry, "seated")}
                             >
                               <Check size={18} />
-                              {pending === entry.id ? "Memproses…" : "Selesai"}
+                              {pending === entry.id ? "Memproses…" : "Berikan meja"}
                             </Button>
                           )}
                           <Button
@@ -360,9 +359,10 @@ export default function StaffPage() {
                             onClick={() => void act(entry, "no-show")}
                           >
                             <X size={17} />
-                            Lewati
+                            Lewati antrean
                           </Button>
                         </div>
+                        {entry.status==='called' && <div className="mt-2"><QueueRecoveryAction entry={entry} disabled={pending!==null||queue.loading||Boolean(queue.error)} onChanged={async restored=>{setMessage(restored.status==='waiting' ? `${restored.queue_number} kembali ke daftar menunggu. Riwayat perubahan disimpan.` : `Pemulihan ${restored.queue_number} sudah diproses sebelumnya. Periksa status terbaru.`);await queue.refresh();}}/></div>}
                       </TableCell>
                     </tr>
                   );})}
@@ -381,16 +381,16 @@ export default function StaffPage() {
                   <p className="text-sm text-slate-500">
                     {search
                       ? "Coba nama atau nomor lainnya."
-                      : "Tamu yang didaftarkan staf akan muncul di sini."}
+                      : "Pendaftaran mandiri dan pendaftaran melalui staf akan tampil di sini."}
                   </p>
                 </div>
               )}
               <div className="border-t border-slate-100 px-6 py-4 text-xs text-slate-500">
                 {active.length} antrean aktif · Urutan kedatangan dalam setiap
-                kelompok jumlah orang. Pilih Selesai setelah meja diberikan. Notifikasi HP hanya dikirim kepada tamu yang sudah mengaktifkannya.
+                kelompok jumlah orang. Pilih Berikan meja segera setelah meja diberikan kepada tamu. Notifikasi HP hanya dikirim kepada tamu yang sudah mengaktifkannya.
               </div>
             </Card>
-            <QueueHistory todayRows={queue.rows} todayLoading={queue.loading} todayError={queue.error} />
+            <QueueHistory todayRows={queue.rows} todayLoading={queue.loading} todayError={queue.error} onChanged={queue.refresh} />
           </>
         )}
       </main>

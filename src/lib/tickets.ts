@@ -1,7 +1,7 @@
 import type { BoardEntry, QueueEntry } from './queue';
 import { isDemo, supabase } from './supabase';
 
-export type CustomerTicket = Pick<BoardEntry, 'id' | 'queue_number' | 'pax' | 'group_code' | 'status' | 'created_at' | 'called_at' | 'service_date' | 'ticket_sequence'>;
+export type CustomerTicket = Pick<BoardEntry, 'id' | 'queue_number' | 'pax' | 'group_code' | 'status' | 'created_at' | 'called_at' | 'service_date' | 'ticket_sequence' | 'call_count' | 'last_call_at'>;
 export type PickupState = { kind: 'empty'; pending: number } | {
   kind: 'opened'; queue_number: string; pax: number; group_code: QueueEntry['group_code'];
 } | { kind: 'ticket'; id: string; queue_number: string; pax: number; group_code: QueueEntry['group_code']; token: string; pending: number };

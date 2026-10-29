@@ -1,8 +1,9 @@
 "use client";
 import { FormEvent, useRef, useState } from "react";
-import { ChevronDown, Loader2, Plus, Users } from "lucide-react";
+import { Loader2, Plus } from "lucide-react";
 import { enqueue } from "@/lib/api";
 import { groupFor, type QueueEntry } from "@/lib/queue";
+import { PartySizeSelect } from "./party-size-select";
 import { GroupBadge } from "./group-badge";
 import { Button } from "./ui/button";
 type QueueFormProps =
@@ -33,6 +34,7 @@ export function QueueForm({
       requestId.current ??= crypto.randomUUID();
       if (onRegister) {
         await onRegister(name, Number(pax), requestId.current, phone);
+        requestId.current = undefined;
         return;
       }
       const entry = await enqueue(
@@ -60,19 +62,19 @@ export function QueueForm({
   return (
     <form
       onSubmit={submit}
-      className={onRegister ? "grid gap-4" : "grid gap-3 sm:grid-cols-2 sm:items-end xl:grid-cols-[1fr_1fr_150px_auto]"}
+      className={onRegister ? "grid gap-4" : "grid gap-3 sm:grid-cols-2 sm:items-end xl:grid-cols-[1fr_1fr_190px_auto]"}
     >
       <div>
         <label
           htmlFor="guest-name"
           className="mb-2 block text-sm font-semibold"
         >
-          Nama tamu
+          {onRegister ? "Nama perwakilan rombongan" : "Nama tamu"}
         </label>
         <input
           id="guest-name"
           autoComplete="name"
-          placeholder="Masukkan nama"
+          placeholder={onRegister ? "Nama yang akan digunakan saat dipanggil" : "Masukkan nama tamu"}
           maxLength={60}
           required
           value={name}
@@ -95,41 +97,9 @@ export function QueueForm({
       </div>
       <div>
         <label htmlFor="guest-pax" className="mb-2 block text-sm font-semibold">
-          Jumlah orang
+          {onRegister ? "Jumlah orang, termasuk Anda" : "Jumlah orang"}
         </label>
-        <div
-          className={`field flex items-center gap-3 ${busy ? "opacity-60" : ""}`}
-        >
-          <Users
-            aria-hidden="true"
-            className="pointer-events-none shrink-0 text-slate-400"
-            size={18}
-          />
-          <select
-            id="guest-pax"
-            value={pax}
-            disabled={busy}
-            onChange={(e) => {
-              changed();
-              setPax(e.target.value);
-            }}
-            className="min-w-0 flex-1 self-stretch appearance-none bg-transparent p-0 font-mono tabular-nums outline-none"
-          >
-            {Array.from({ length: 12 }, (_, i) => (
-              <option key={i} value={i + 1}>
-                {i + 1}
-              </option>
-            ))}
-          </select>
-          <span aria-hidden="true" className="text-sm text-slate-500">
-            orang
-          </span>
-          <ChevronDown
-            aria-hidden="true"
-            size={16}
-            className="pointer-events-none shrink-0 text-slate-500"
-          />
-        </div>
+        <PartySizeSelect value={pax} disabled={busy} onChange={value => { changed(); setPax(value); }} />
       </div>
       <Button
         type="submit"
@@ -144,8 +114,8 @@ export function QueueForm({
         {busy ? "Menyimpan…" : onRegister ? "Ambil nomor antrean" : "Tambah antrean"}
       </Button>
       <div className="col-span-full flex flex-wrap items-center justify-between gap-2 text-xs text-slate-500">
-        <span>Grup tamu: <GroupBadge group={groupFor(Number(pax))} /></span>
-        <span>{onRegister ? "Nomor telepon bersifat opsional. Pesan WhatsApp tidak dikirim otomatis." : "Minta persetujuan tamu sebelum menghubungi melalui WhatsApp."}</span>
+        <span>Kelompok antrean: <GroupBadge group={groupFor(Number(pax))} /></span>
+        <span>{onRegister ? "Nomor ini dapat digunakan staf untuk menghubungi Anda terkait giliran antrean. Pengisian bersifat opsional." : "Minta persetujuan tamu sebelum menghubungi melalui WhatsApp."}</span>
       </div>
       {error && (
         <p role="alert" className="text-sm text-red-700 md:col-span-full">
