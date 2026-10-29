@@ -117,6 +117,7 @@ export default function CustomerTicketPage() {
         {!expired && ['waiting','called'].includes(entry.status) && <p className="mt-3 text-xs leading-5 text-slate-500">{CALL_POLICY_COPY}</p>}
         {(entry.status === 'seated' || expired) && <Link href="/register" className="mt-4 flex min-h-12 items-center justify-center rounded-lg bg-brand px-4 py-3 text-sm font-semibold text-white">Daftar antrean baru</Link>}
         {entry.status === 'seated' && <p className="mt-2 text-xs leading-5 text-slate-500">Kunjungan ini sudah selesai. Untuk kunjungan berikutnya, daftar kembali untuk mendapatkan nomor baru.</p>}
+        <PushPermission ticketToken={ticketToken} ended={expired || entry.status==='seated' || entry.status==='no-show'} />
         <section className="mt-4 rounded-xl border border-slate-200 bg-white p-4">
           <h2 className="text-sm font-semibold">Buka tiket dari Layar Utama</h2>
           <p className="mt-2 text-sm leading-6 text-slate-600">Jika Bari Ramen sudah ada di Layar Utama, salin tautan ini. Buka aplikasi, pilih Sudah daftar di Safari, Chrome, atau aplikasi?, lalu tempel tautannya. Tidak perlu daftar ulang.</p>
@@ -125,7 +126,6 @@ export default function CustomerTicketPage() {
           <p className="mt-2 text-xs leading-5 text-slate-500">Tautan ini menghubungkan kunjungan Anda selama 30 hari. Simpan untuk Anda sendiri.</p>
         </section>
         <CustomerAppGuide />
-        <PushPermission ticketToken={ticketToken} ended={expired || entry.status==='seated' || entry.status==='no-show'} />
         <p className="mt-3 text-xs leading-5 text-slate-500">{entry.status === 'seated' ? 'Tautan ini tetap menampilkan tiket kunjungan sebelumnya.' : 'Simpan tautan tiket ini dan tetap berada di sekitar restoran. Anda dapat membukanya kembali selama antrean hari ini.'}</p>
         <p className="mt-2 text-xs text-slate-500">{board.connection} · Berlaku untuk hari ini</p>
       </>}

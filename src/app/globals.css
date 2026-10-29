@@ -174,7 +174,9 @@ body {
 .tv-other-calls ul { display: flex; flex-wrap: wrap; gap: 6px 24px; list-style: none; padding: 0; margin: 0; }
 .tv-other-calls li { font-weight: 850; font-variant-numeric: tabular-nums; }
 .tv-waiting { display: flex; flex: 1 1 0; min-height: 0; flex-direction: column; padding: clamp(14px, 1.5vw, 26px) clamp(16px, 2vw, 34px); }
-.tv-waiting > h2 { margin-bottom: 6px; flex-shrink: 0; font-size: clamp(22px, 2.8vw, 52px); }
+.tv-waiting-heading { display: flex; align-items: baseline; justify-content: space-between; flex-shrink: 0; gap: 16px; }
+.tv-page-number { margin: 0; color: #52617a; font-size: clamp(14px, 1.15vw, 22px); font-weight: 600; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.tv-waiting-heading > h2 { margin-bottom: 6px; flex-shrink: 0; font-size: clamp(22px, 2.8vw, 52px); }
 .tv-waiting-area { container-type: size; position: relative; flex: 1; min-height: 0; overflow: hidden; }
 .tv-waiting-area:has(.tv-waiting-grid)::after { content: ""; position: absolute; left: 50%; top: 0; bottom: 0; border-left: 1px solid #1d284840; pointer-events: none; }
 .tv-waiting-grid { display: grid; grid-auto-flow: column; grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-rows: repeat(3, minmax(0, 1fr)); height: 100%; list-style: none; margin: 0; padding: 0; }
@@ -205,7 +207,7 @@ body {
   .tv-call-instruction { font-size: clamp(17px, min(2.5vw, 12cqh), 34px); margin-top: 6px; }
   .tv-other-calls { padding: 8px 16px; font-size: 17px; }
   .tv-waiting { padding: 12px 20px; }
-  .tv-waiting > h2 { margin-bottom: 6px; font-size: clamp(20px, 2.6vw, 34px); }
+  .tv-waiting-heading > h2 { margin-bottom: 6px; font-size: clamp(20px, 2.6vw, 34px); }
 }
 @media (max-width: 800px) { .tv-header .brand-subtitle { display: none; } }
 @media (max-width: 639px) {

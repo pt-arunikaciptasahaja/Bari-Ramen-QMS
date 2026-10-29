@@ -129,5 +129,34 @@ test('push subscription access, outbox deduplication, leases, retries and consen
       assert.equal(await call('select ticket_push_status($1,$2) as v',[token,hash]),false);
       await call('select remove_push_subscription($1,$2) as v',[token,hash]);
     });
+    await t.test('late opt-in queues the current call once, including after an earlier reminder',async()=>{
+      await asStaff();
+      const late=await call<{id:string}>("select to_jsonb(enqueue('Late opt-in',2,'walk-in',$1)) as v",[crypto.randomUUID()]);
+      const lateToken=await call<string>('select staff_ticket_token($1) as v',[late.id]);
+      await call("select transition_queue($1,'called') as v",[late.id]);
+      await db.exec('reset role');
+      await db.query("update queue_entries set called_at=clock_timestamp()-interval '185 seconds',call_count=2,last_call_at=clock_timestamp()-interval '5 seconds' where id=$1",[late.id]);
+      await anon();await save(lateToken);await save(lateToken);
+      await asStaff();
+      const jobs=await call<{id:string;call_count:number}[]>('select claim_push_jobs($1) as v',[late.id]);
+      assert.equal(jobs.length,1);assert.equal(jobs[0].call_count,2);
+      await call("select finish_push_job($1,'accepted',201) as v",[jobs[0].id]);
+      await anon();await save(lateToken);
+      await asStaff();assert.deepEqual(await call('select claim_push_jobs($1) as v',[late.id]),[]);
+      await call("select transition_queue($1,'seated') as v",[late.id]);
+      const next=await call<{id:string}>("select to_jsonb(enqueue('Return visit',2,'walk-in',$1)) as v",[crypto.randomUUID()]);
+      const nextToken=await call<string>('select staff_ticket_token($1) as v',[next.id]);
+      await anon();await save(nextToken);
+      assert.equal(await call('select ticket_push_status($1,$2) as v',[nextToken,hash]),true);
+      assert.equal(await call('select ticket_push_status($1,$2) as v',[lateToken,hash]),false);
+      await asStaff();await call("select transition_queue($1,'called') as v",[next.id]);
+      assert.equal((await call<unknown[]>('select claim_push_jobs($1) as v',[next.id])).length,1);
+      await db.exec('reset role');
+      await db.query("update queue_entries set called_at=clock_timestamp()-interval '16 minutes' where id=$1",[next.id]);
+      await anon();await save(nextToken,endpoint+'expired-call');
+      await asStaff();assert.deepEqual(await call('select claim_push_jobs($1) as v',[next.id]),[]);
+      await db.exec('reset role');
+      assert.equal(await call('select count(*)::int as v from qms_private.push_jobs j join qms_private.push_subscriptions s on s.id=j.subscription_id where s.endpoint=$1',[endpoint+'expired-call']),0);
+    });
   }finally{await db.close();}
 });

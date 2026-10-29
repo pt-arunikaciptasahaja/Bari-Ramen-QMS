@@ -98,7 +98,10 @@ function TVDisplay() {
             <ul>{previousPage.items.map(entry => <li key={entry.id}>{entry.queue_number}</li>)}</ul>
           </section>}
           <section className="tv-waiting" aria-labelledby="waiting-title">
-            <h2 id="waiting-title" className="tv-section-label">Waiting list</h2>
+            <div className="tv-waiting-heading">
+              <h2 id="waiting-title" className="tv-section-label">Waiting list</h2>
+              <p className="tv-page-number" role="status" aria-label={`Waiting list page ${waitingPage.page + 1} of ${waitingPage.pages}`}>Page {waitingPage.page + 1} of {waitingPage.pages}</p>
+            </div>
             <div className="tv-waiting-area">
               {waitingPage.items.length ? <ol className="tv-waiting-grid" start={waitingPage.offset + 1}>
                 {waitingPage.items.map(entry => <li key={entry.id} className="tv-waiting-row">{entry.queue_number}</li>)}
