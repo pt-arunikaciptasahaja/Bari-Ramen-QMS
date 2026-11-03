@@ -88,8 +88,8 @@ export function PushPermission({ticketToken,ended}:{ticketToken:string;ended:boo
   }
   if(ended)return null;
   return <section aria-labelledby="notification-title" className="mt-4 rounded-xl bg-white p-4">
-    <h2 id="notification-title" className="flex items-center gap-2 text-sm font-semibold"><Bell size={17}/>Notifikasi giliran</h2>
-    <p className="mt-2 text-sm leading-6 text-slate-600">Aktifkan pemberitahuan agar tidak melewatkan giliran Anda. Notifikasi digunakan untuk memberi tahu giliran antrean Anda. Tetap pantau tiket selama menunggu.</p>
+    <h2 id="notification-title" className="flex items-center gap-2 text-sm font-semibold"><Bell size={17}/>Notifikasi</h2>
+    <p className="mt-2 text-sm leading-6 text-slate-600">Periksa kembali status notifikasi browser di HP Anda, pastikan dalam keadaan aktif.</p>
     {needsInstall ? <div className="mt-3 rounded-lg bg-slate-100 p-3 text-xs leading-6 text-slate-600"><p className="font-semibold">Menggunakan iPhone atau iPad?</p><p className="whitespace-pre-line">1. Buka tautan tiket ini di Safari (bukan browser dalam WhatsApp atau Instagram).
 2. Ketuk Bagikan → Tambahkan ke Layar Utama → Tambah.
 3. Buka ikon Bari Ramen dari Layar Utama. Ketuk Aktifkan notifikasi → Izinkan.
@@ -113,7 +113,7 @@ export function PushPermission({ticketToken,ended}:{ticketToken:string;ended:boo
       <summary className="cursor-pointer font-semibold">Panduan iPhone / iPad</summary>
       <p className="mt-2">Buka tiket dari ikon Bari Ramen di Layar Utama (iOS/iPadOS 16.4+). Ketuk Aktifkan notifikasi → Izinkan, lalu Uji notifikasi. Periksa Pusat Notifikasi, Pengaturan → Notifikasi → Bari Ramen, dan mode Fokus jika uji belum muncul. Coba lagi setelah 30 detik.</p>
     </details>}
-    <p className="mt-3 text-xs leading-5 text-slate-500">Notifikasi dapat muncul saat halaman ditutup atau HP dikunci pada perangkat yang mendukungnya. Pastikan internet dan notifikasi browser aktif. Suara mengikuti mode senyap atau Fokus HP.</p>
+    <p className="mt-3 text-xs leading-5 text-slate-500">Anda akan mendapatkan notifikasi pada saat halaman ini ditutup atau HP Anda terkunci.</p>
     {message&&<p role="status" className="mt-3 text-xs leading-5 text-slate-700">{message}</p>}
   </section>;
 }

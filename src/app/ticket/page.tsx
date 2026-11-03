@@ -114,11 +114,8 @@ export default function CustomerTicketPage() {
         {(entry.status === 'seated' || expired) && <Link href="/register" className="mt-4 flex min-h-12 items-center justify-center rounded-lg bg-brand px-4 py-3 text-sm font-semibold text-white">Daftar antrean baru</Link>}
         {entry.status === 'seated' && <p className="mt-2 text-xs leading-5 text-slate-500">Kunjungan ini sudah selesai. Untuk kunjungan berikutnya, daftar kembali untuk mendapatkan nomor baru.</p>}
         <PushPermission ticketToken={ticketToken} ended={expired || entry.status==='seated' || entry.status==='no-show'} />
-        <p className="mt-3 text-xs leading-5 text-slate-500">{entry.status === 'seated' ? 'Tautan ini tetap menampilkan tiket kunjungan sebelumnya.' : 'Simpan tautan tiket ini dan tetap berada di sekitar restoran. Anda dapat membukanya kembali selama antrean hari ini.'}</p>
-        <p className="mt-2 text-xs text-slate-500">{board.connection} · Berlaku untuk hari ini</p>
       </>}
       {(error || board.error) && <p role="alert" className="mt-4 rounded-lg bg-amber-50 p-3 text-sm text-amber-900">{error || board.error}{entry ? ' Data mungkin belum terbaru.' : ''}</p>}
-      <button onClick={() => setRetry(value=>value+1)} className="mt-4 min-h-11 rounded-md bg-slate-100 px-4 text-sm font-medium">Periksa status terbaru</button>
       <Link href="/" className="mt-4 block py-3 text-sm text-slate-500">Kembali ke beranda</Link>
     </main>
   </>;
