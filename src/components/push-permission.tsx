@@ -14,6 +14,7 @@ export function PushPermission({ticketToken,ended}:{ticketToken:string;ended:boo
   const [supported,setSupported]=useState<boolean|null>(null);
   const [needsInstall,setNeedsInstall]=useState(false);
   const [isIOS,setIsIOS]=useState(false);
+  const [isStandalone,setIsStandalone]=useState<boolean|null>(null);
   const [permission,setPermission]=useState<NotificationPermission>('default');
   const [active,setActive]=useState(false);
   const [busy,setBusy]=useState(false);
@@ -27,7 +28,7 @@ export function PushPermission({ticketToken,ended}:{ticketToken:string;ended:boo
     setActive(false);setMessage('');
     const ios=/iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform==='MacIntel' && navigator.maxTouchPoints>1);
     const standalone=window.matchMedia('(display-mode: standalone)').matches || Boolean((navigator as Navigator & {standalone?:boolean}).standalone);
-    setIsIOS(ios);setNeedsInstall(ios&&!standalone);
+    setIsIOS(ios);setIsStandalone(standalone);setNeedsInstall(ios&&!standalone);
     const compatible='serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
     setSupported(compatible);
     if(!compatible || (ios&&!standalone))return;
@@ -82,7 +83,7 @@ export function PushPermission({ticketToken,ended}:{ticketToken:string;ended:boo
       if(!sub)throw new Error('Perangkat belum terdaftar. Aktifkan notifikasi kembali.');
       await pushRequest({action,ticketToken,endpoint:sub.endpoint});
       if(action==='unsubscribe'){try{localStorage.setItem(PUSH_PREFERENCE_KEY,'off');}catch{/* Storage is optional. */}setActive(false);setMessage('Notifikasi untuk antrean ini dinonaktifkan. Anda tetap bisa memantau tiket.');}
-      else setMessage('Permintaan notifikasi uji berhasil diproses. Periksa pusat notifikasi HP Anda. Jika belum muncul, buka panduan di bawah.');
+      else setMessage('Permintaan notifikasi uji berhasil diproses. Silakan periksa pusat notifikasi HP Anda. Jika belum muncul, pastikan izin notifikasi dan koneksi internet aktif.');
     }catch(e){setMessage(e instanceof Error ? e.message : 'Belum berhasil. Silakan coba lagi.');}
     finally{lock.current=false;setBusy(false);}
   }
@@ -90,15 +91,21 @@ export function PushPermission({ticketToken,ended}:{ticketToken:string;ended:boo
   return <section aria-labelledby="notification-title" className="mt-4 rounded-xl bg-white p-4">
     <h2 id="notification-title" className="flex items-center gap-2 text-sm font-semibold"><Bell size={17}/>Notifikasi</h2>
     <p className="mt-2 text-sm leading-6 text-slate-600">Periksa kembali status notifikasi browser di HP Anda, pastikan dalam keadaan aktif.</p>
-    {needsInstall ? <div className="mt-3 rounded-lg bg-slate-100 p-3 text-xs leading-6 text-slate-600"><p className="font-semibold">Menggunakan iPhone atau iPad?</p><p className="whitespace-pre-line">1. Buka tautan tiket ini di Safari (bukan browser dalam WhatsApp atau Instagram).
-2. Ketuk Bagikan → Tambahkan ke Layar Utama → Tambah.
-3. Buka ikon Bari Ramen dari Layar Utama. Ketuk Aktifkan notifikasi → Izinkan.
-4. Ketuk Uji notifikasi, lalu periksa Pusat Notifikasi.</p><p className="mt-1">Memerlukan iOS/iPadOS 16.4 atau lebih baru. Jika sudah punya ikon Bari Ramen, pastikan aplikasi menampilkan nomor tiket yang sama. Jika tiket belum muncul, lanjutkan memantau tiket di Safari dan minta bantuan staf. Jangan mendaftar ulang untuk antrean yang sama.</p></div>
+    {needsInstall ? <div className="mt-3 rounded-lg bg-slate-100 p-3 text-xs leading-6 text-slate-600">
+      <p className="font-semibold">Untuk pengguna iPhone dan iPad</p>
+      <ul className="ml-4 mt-2 list-disc space-y-2">
+        <li>Buka tiket ini di Safari. Ketuk Bagikan → Tambahkan ke Layar Utama → Tambah.</li>
+        <li>Buka ikon Bari Ramen, lalu pastikan nomor tiket yang tampil sudah sesuai.</li>
+        <li>Ketuk Aktifkan notifikasi → Izinkan, lalu pilih Uji notifikasi.</li>
+        <li>Jika tiket belum muncul, lanjutkan memantau tiket di Safari. Staf kami siap membantu; Anda tidak perlu mendaftar ulang.</li>
+        <li>Memerlukan iOS/iPadOS 16.4 atau lebih baru.</li>
+      </ul>
+    </div>
       : supported===false ? <p className="mt-3 text-xs leading-5 text-amber-800">Browser ini belum mendukung notifikasi. Coba buka tautan tiket di Chrome atau Safari, bukan dari browser di dalam aplikasi.</p>
       : !key ? <p className="mt-3 text-xs text-slate-500">Notifikasi belum tersedia. Silakan pantau tiket atau hubungi staf.</p>
       : active ? <><p className="mt-3 flex items-center gap-2 text-sm font-medium text-emerald-800"><Check size={16}/>Notifikasi aktif di perangkat ini</p><div className="mt-3 flex flex-wrap gap-2"><Button disabled={busy} variant="outline" onClick={()=>void change('test')}>Uji notifikasi</Button><Button disabled={busy} variant="ghost" onClick={()=>void change('unsubscribe')}><BellOff size={15}/>Nonaktifkan</Button></div></>
       : <><Button disabled={busy||!ready||supported===null||permission==='denied'} className="mt-3 w-full" onClick={()=>void enable()}><Bell size={16}/>{busy?'Mengaktifkan…':!ready?'Menyiapkan notifikasi…':'Aktifkan notifikasi'}</Button>{permission==='denied'&&<p className="mt-2 text-xs leading-5 text-amber-800">{isIOS ? 'Notifikasi diblokir. Buka Pengaturan iPhone/iPad → Notifikasi → Bari Ramen → Izinkan Notifikasi. Buka lagi tiket dari ikon Layar Utama, lalu ketuk Aktifkan notifikasi. Jika aplikasi belum tercantum, minta bantuan staf.' : 'Notifikasi diblokir. Di Chrome, ketuk ikon kontrol di sebelah alamat → Izin → Notifikasi → Izinkan (nama menu dapat berbeda). Periksa juga Pengaturan Android → Aplikasi → Chrome → Notifikasi. Kembali ke tiket, muat ulang, lalu ketuk Aktifkan notifikasi.'}</p>}</>}
-    <details className="mt-3 rounded-lg bg-slate-50 p-3 text-xs leading-6 text-slate-600" >
+    {isStandalone===false && !isIOS && <details className="mt-3 rounded-lg bg-slate-50 p-3 text-xs leading-6 text-slate-600" >
       <summary className="cursor-pointer font-semibold">Panduan Android</summary>
       <ol className="ml-4 mt-2 list-decimal">
         <li>Buka tautan tiket di Chrome, bukan browser dalam WhatsApp/Instagram.</li>
@@ -108,10 +115,6 @@ export function PushPermission({ticketToken,ended}:{ticketToken:string;ended:boo
         <li>Ketuk Uji notifikasi. Periksa panel notifikasi HP, termasuk saat layar dikunci.</li>
         <li>Jika belum muncul, periksa izin notifikasi Chrome di Pengaturan Android, internet, mode Jangan Ganggu, dan pembatasan baterai Chrome. Coba uji kembali setelah 30 detik.</li>
       </ol>
-    </details>
-    {isIOS && !needsInstall && <details className="mt-3 rounded-lg bg-slate-50 p-3 text-xs leading-6 text-slate-600">
-      <summary className="cursor-pointer font-semibold">Panduan iPhone / iPad</summary>
-      <p className="mt-2">Buka tiket dari ikon Bari Ramen di Layar Utama (iOS/iPadOS 16.4+). Ketuk Aktifkan notifikasi → Izinkan, lalu Uji notifikasi. Periksa Pusat Notifikasi, Pengaturan → Notifikasi → Bari Ramen, dan mode Fokus jika uji belum muncul. Coba lagi setelah 30 detik.</p>
     </details>}
     <p className="mt-3 text-xs leading-5 text-slate-500">Anda akan mendapatkan notifikasi pada saat halaman ini ditutup atau HP Anda terkunci.</p>
     {message&&<p role="status" className="mt-3 text-xs leading-5 text-slate-700">{message}</p>}
