@@ -1,5 +1,4 @@
 'use client';
-import { CustomerAppGuide } from '@/components/customer-app-guide';
 import { CUSTOMER_VISIT_KEY, resolveCustomerVisit, savedVisitToken, saveVisitToken } from '@/lib/customer-visit';
 import { serviceDate } from '@/lib/queue';
 import { JakartaClock } from "@/components/jakarta-clock";
@@ -71,10 +70,9 @@ export default function RegisterPage() {
     <DemoNotice />
     <header className="mx-auto max-w-md px-4 py-5"><Brand /><JakartaClock /></header>
     <main className="mx-auto max-w-md px-4 pb-8">
-      <h1 className="text-2xl font-semibold tracking-tight">Ambil nomor antrean</h1>
-      <p className="mt-2 text-sm leading-6 text-slate-600">Satu pendaftaran untuk setiap rombongan.</p>
+      <h1 className="text-2xl font-semibold tracking-tight">Selamat datang teman BARI</h1>
+      <p className="mt-2 text-sm leading-6 text-slate-600">Satu pendaftar untuk setiap rombongan.</p>
       {returnVisit && <p role="status" className="mt-4 rounded-lg border-l-2 border-brand bg-brand-soft px-4 py-3 text-sm leading-6 text-slate-700">{returnVisit === 'complete' ? 'Kunjungan sebelumnya sudah selesai. Silakan daftar untuk kunjungan baru.' : 'Antrean sebelumnya sudah berakhir. Silakan daftar untuk kunjungan baru.'}</p>}
-      <CustomerAppGuide context="registration" />
       <section aria-label="Formulir pendaftaran antrean" className="mt-5 rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
         {checking ? <p role="status" className="text-sm text-slate-500">Memeriksa tiket Anda…</p> : <QueueForm onRegister={submit} />}
       </section>

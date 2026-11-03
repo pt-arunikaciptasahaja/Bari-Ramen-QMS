@@ -13,7 +13,6 @@ import { queueGroups } from '@/lib/groups';
 import { CUSTOMER_TICKET_KEY, completedTicketDestination, syncCustomerTicket } from '@/lib/customer-ticket-storage';
 import { CALL_POLICY_COPY, customerStatusCopy } from '@/lib/customer-copy';
 import { CUSTOMER_VISIT_KEY, linkCustomerVisit, resolveCustomerVisit, savedVisitToken, saveVisitToken } from '@/lib/customer-visit';
-import { CustomerAppGuide } from '@/components/customer-app-guide';
 import { PushPermission } from '@/components/push-permission';
 
 export default function CustomerTicketPage() {
@@ -115,7 +114,6 @@ export default function CustomerTicketPage() {
         {(entry.status === 'seated' || expired) && <Link href="/register" className="mt-4 flex min-h-12 items-center justify-center rounded-lg bg-brand px-4 py-3 text-sm font-semibold text-white">Daftar antrean baru</Link>}
         {entry.status === 'seated' && <p className="mt-2 text-xs leading-5 text-slate-500">Kunjungan ini sudah selesai. Untuk kunjungan berikutnya, daftar kembali untuk mendapatkan nomor baru.</p>}
         <PushPermission ticketToken={ticketToken} ended={expired || entry.status==='seated' || entry.status==='no-show'} />
-        <CustomerAppGuide />
         <p className="mt-3 text-xs leading-5 text-slate-500">{entry.status === 'seated' ? 'Tautan ini tetap menampilkan tiket kunjungan sebelumnya.' : 'Simpan tautan tiket ini dan tetap berada di sekitar restoran. Anda dapat membukanya kembali selama antrean hari ini.'}</p>
         <p className="mt-2 text-xs text-slate-500">{board.connection} · Berlaku untuk hari ini</p>
       </>}
