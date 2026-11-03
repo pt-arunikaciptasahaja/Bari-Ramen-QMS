@@ -9,34 +9,51 @@ const entry = {
   status: "called", call_count: 1, called_at: new Date(start).toISOString(), service_date: "2026-10-16",
 } as QueueEntry;
 
-test("WhatsApp unlocks at 180 seconds from first call, independently of TV sound", () => {
-  assert.equal(whatsappState(entry, start).remaining, 180);
-  assert.equal(whatsappState(entry, start + 179999).enabled, false);
-  assert.equal(whatsappState(entry, start + 180000).enabled, true);
-  assert.equal(whatsappState(entry, start + 180000).remaining, 0);
-  assert.equal(whatsappLink(entry, start + 179999), null);
+test("WhatsApp is available immediately on every call without a timer", () => {
+  for (const call_count of [1, 2, 3]) {
+    for (const now of [start, start + 1, start + 179999]) {
+      const row = {...entry, call_count};
+      assert.equal(whatsappState(row, now).enabled, true);
+      assert.ok(whatsappLink(row, now));
+    }
+  }
 });
 
-test("WhatsApp blocks terminal, waiting, missing, malformed, future and expired tickets", () => {
-  for (const patch of [
-    { status: "waiting" }, { status: "seated" }, { status: "no-show" },
-    { call_count: 0 }, { customer_phone: null }, { customer_phone: "not-a-number" },
-    { called_at: null }, { called_at: "invalid" },
-    { called_at: new Date(start + 240000).toISOString() }, { service_date: "2026-10-15" },
-  ]) {
-    const row = { ...entry, ...patch } as QueueEntry;
-    assert.equal(whatsappState(row, start + 180000).enabled, false);
-    assert.equal(whatsappLink(row, start + 180000), null);
+test("waiting guests can be contacted before the first call without a misleading call message", () => {
+  const waiting = {...entry, status:'waiting', called_at:null, call_count:0} as QueueEntry;
+  assert.equal(whatsappState(waiting, start).enabled, true);
+  const link = new URL(whatsappLink(waiting, start)!);
+  assert.equal(link.pathname, '/6281234567890');
+  assert.match(link.searchParams.get('text')!, /masih dalam daftar tunggu/);
+  assert.doesNotMatch(link.searchParams.get('text')!, /sudah dipanggil|segera menuju kasir/);
+  assert.match(whatsappMessage(entry), /sudah dipanggil/);
+});
+
+test("WhatsApp blocks terminal, missing-phone, malformed-phone and previous-day tickets", () => {
+  for (const status of ['waiting', 'called'] as const) {
+    for (const patch of [
+      { status: "seated" }, { status: "no-show" },
+      { customer_phone: null }, { customer_phone: "not-a-number" },
+      { service_date: "2026-10-15" },
+    ]) {
+      const row = { ...entry, status, ...patch } as QueueEntry;
+      assert.equal(whatsappState(row, start).enabled, false);
+      assert.equal(whatsappLink(row, start), null);
+    }
   }
-  assert.equal(whatsappState(entry, 0).enabled, false);
-  assert.equal(whatsappState(entry, NaN).enabled, false);
+  for (const now of [0, NaN, Infinity]) assert.equal(whatsappState(entry, now).enabled, false);
 });
 
 test("WhatsApp link targets the normalized number and preserves encoded message text", () => {
-  const link = new URL(whatsappLink(entry, start + 180000)!);
+  const link = new URL(whatsappLink(entry, start)!);
   assert.equal(link.origin, "https://wa.me");
   assert.equal(link.pathname, "/6281234567890");
   assert.equal(link.searchParams.get("text"), whatsappMessage(entry));
   assert.ok(link.searchParams.get("text")?.includes("Budi & keluarga"));
   assert.ok(link.searchParams.get("text")?.includes("B-006"));
+});
+
+test("contact expires at the Jakarta service-day boundary", () => {
+  assert.equal(whatsappState(entry, Date.parse('2026-10-16T16:59:59Z')).enabled, true);
+  assert.equal(whatsappState(entry, Date.parse('2026-10-16T17:00:00Z')).enabled, false);
 });
