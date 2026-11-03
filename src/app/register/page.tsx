@@ -1,6 +1,5 @@
 'use client';
 import { CustomerAppGuide } from '@/components/customer-app-guide';
-import { CustomerTicketTransfer } from '@/components/customer-ticket-transfer';
 import { CUSTOMER_VISIT_KEY, resolveCustomerVisit, savedVisitToken, saveVisitToken } from '@/lib/customer-visit';
 import { serviceDate } from '@/lib/queue';
 import { JakartaClock } from "@/components/jakarta-clock";
@@ -19,6 +18,7 @@ export default function RegisterPage() {
   const router = useRouter();
   const [returnVisit,setReturnVisit] = useState('');
   const [checking, setChecking] = useState(true);
+  const [activeTicketHref, setActiveTicketHref] = useState('');
   useEffect(() => {
     setReturnVisit(new URLSearchParams(window.location.search).get('visit') ?? '');
     let alive = true, busy = false;
@@ -33,7 +33,9 @@ export default function RegisterPage() {
           const ticket = await fetchCustomerTicket(token);
           if (ticket) syncCustomerTicket(localStorage,token,ticket.status);
           if (alive && ticket && ticket.service_date === serviceDate() && ['waiting', 'called'].includes(ticket.status)) {
-            router.replace(`/ticket#t=${resolved ? visit : token}`);
+            const href = `/ticket#t=${resolved ? visit : token}`;
+            setActiveTicketHref(href);
+            router.replace(href);
             return;
           }
         }
@@ -55,7 +57,7 @@ export default function RegisterPage() {
     if(resolved) saved=resolved;
     if (!isDemo && validTicketToken(saved)) {
       const current = await fetchCustomerTicket(saved);
-      if (current && ['waiting', 'called'].includes(current.status)) {
+      if (current && current.service_date === serviceDate() && ['waiting', 'called'].includes(current.status)) {
         router.replace(`/ticket#t=${resolved ? visit : saved}`);
         return;
       }
@@ -69,19 +71,19 @@ export default function RegisterPage() {
     <DemoNotice />
     <header className="mx-auto max-w-md px-4 py-5"><Brand /><JakartaClock /></header>
     <main className="mx-auto max-w-md px-4 pb-8">
-      <p className="eyebrow mb-2 text-cobalt">Sebelum menikmati ramen</p>
-      <h1 className="text-2xl font-semibold tracking-tight">Ambil nomor antrean Anda</h1>
-      <p className="mt-2 text-sm leading-6 text-slate-600">Senang menyambut Anda di Bari Ramen. Cukup satu pendaftaran untuk setiap rombongan; tiket akan langsung terbuka di HP Anda.</p>
-      {returnVisit && <p role="status" className="mt-4 rounded-lg bg-slate-50 p-4 text-sm leading-6 text-slate-700">{returnVisit === 'complete' ? 'Kunjungan sebelumnya sudah selesai. Datang lagi? Isi formulir ini untuk mendapatkan nomor antrean baru.' : 'Antrean sebelumnya sudah berakhir. Silakan daftar kembali untuk mendapatkan nomor antrean baru.'}</p>}
-      <CustomerTicketTransfer />
+      <h1 className="text-2xl font-semibold tracking-tight">Ambil nomor antrean</h1>
+      <p className="mt-2 text-sm leading-6 text-slate-600">Satu pendaftaran untuk setiap rombongan.</p>
+      {returnVisit && <p role="status" className="mt-4 rounded-lg border-l-2 border-brand bg-brand-soft px-4 py-3 text-sm leading-6 text-slate-700">{returnVisit === 'complete' ? 'Kunjungan sebelumnya sudah selesai. Silakan daftar untuk kunjungan baru.' : 'Antrean sebelumnya sudah berakhir. Silakan daftar untuk kunjungan baru.'}</p>}
+      <CustomerAppGuide context="registration" />
       <section aria-label="Formulir pendaftaran antrean" className="mt-5 rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
         {checking ? <p role="status" className="text-sm text-slate-500">Memeriksa tiket Anda…</p> : <QueueForm onRegister={submit} />}
       </section>
-      <CustomerAppGuide />
-      <p className="mt-4 text-xs leading-6 text-slate-500">Tiket berlaku untuk antrean hari ini. Pendaftaran belum menjamin meja tersedia pada jam tertentu. Urutan panggilan mengikuti ketersediaan meja sesuai jumlah orang. Tetap berada di sekitar restoran.</p>
-      <p className="mt-3 text-sm leading-6 text-slate-600">Perlu bantuan? Silakan minta staf di kasir untuk mendaftarkan Anda.</p>
-      <Link href="/ticket" className="mt-3 inline-flex min-h-11 items-center text-sm font-semibold underline">Buka tiket saya</Link>
-      <Link href="/" className="ml-5 inline-flex min-h-11 items-center text-sm text-slate-500">Beranda</Link>
+      <p className="mt-4 text-xs leading-6 text-slate-500">Panggilan mengikuti ketersediaan meja sesuai jumlah orang. Mohon tetap berada di sekitar restoran.</p>
+      <p className="mt-3 text-sm leading-6 text-slate-600">Perlu bantuan? Staf di kasir siap membantu.</p>
+      <nav aria-label="Navigasi pendaftaran" className="mt-3 flex flex-wrap gap-x-5">
+        {activeTicketHref && <Link href={activeTicketHref} className="inline-flex min-h-11 items-center text-sm font-semibold underline">Lihat tiket saya</Link>}
+        <Link href="/" className="inline-flex min-h-11 items-center text-sm text-slate-500">Beranda</Link>
+      </nav>
     </main>
   </>;
 }

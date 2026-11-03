@@ -59,6 +59,28 @@ export function QueueForm({
       setBusy(false);
     }
   }
+  const phoneField = (
+    <div>
+        <label htmlFor="guest-phone" className="mb-2 block text-sm font-semibold">
+          {onRegister ? 'WhatsApp' : 'Telepon / WhatsApp'} <span className="font-normal text-slate-500">— opsional</span>
+        </label>
+        <input id="guest-phone" type="tel" inputMode="tel" autoComplete="tel"
+          placeholder="08xxxxxxxxxx" maxLength={24} value={phone} disabled={busy}
+          onChange={(e) => { changed(); setPhone(e.target.value); }}
+          aria-describedby={onRegister ? 'guest-phone-help' : undefined}
+          className="field font-mono tabular-nums" />
+        {onRegister && <p id="guest-phone-help" className="mt-2 text-xs leading-5 text-slate-500">Hanya untuk menghubungi Anda terkait giliran antrean.</p>}
+      </div>
+  );
+  const paxField = (
+    <div>
+        <label htmlFor="guest-pax" className="mb-2 block text-sm font-semibold">
+          Jumlah orang
+        </label>
+        <PartySizeSelect value={pax} disabled={busy} onChange={value => { changed(); setPax(value); }} />
+        {onRegister && <p className="mt-2 text-xs text-slate-500">Termasuk Anda.</p>}
+      </div>
+  );
   return (
     <form
       onSubmit={submit}
@@ -69,12 +91,12 @@ export function QueueForm({
           htmlFor="guest-name"
           className="mb-2 block text-sm font-semibold"
         >
-          {onRegister ? "Nama perwakilan rombongan" : "Nama tamu"}
+          {onRegister ? "Nama" : "Nama tamu"}
         </label>
         <input
           id="guest-name"
           autoComplete="name"
-          placeholder={onRegister ? "Nama yang akan digunakan saat dipanggil" : "Masukkan nama tamu"}
+          placeholder={onRegister ? "Nama Anda" : "Masukkan nama tamu"}
           maxLength={60}
           required
           value={name}
@@ -86,21 +108,7 @@ export function QueueForm({
           className="field"
         />
       </div>
-      <div>
-        <label htmlFor="guest-phone" className="mb-2 block text-sm font-semibold">
-          Telepon / WhatsApp <span className="font-normal text-slate-500">(opsional)</span>
-        </label>
-        <input id="guest-phone" type="tel" inputMode="tel" autoComplete="tel"
-          placeholder="08xxxxxxxxxx" maxLength={24} value={phone} disabled={busy}
-          onChange={(e) => { changed(); setPhone(e.target.value); }}
-          className="field font-mono tabular-nums" />
-      </div>
-      <div>
-        <label htmlFor="guest-pax" className="mb-2 block text-sm font-semibold">
-          {onRegister ? "Jumlah orang, termasuk Anda" : "Jumlah orang"}
-        </label>
-        <PartySizeSelect value={pax} disabled={busy} onChange={value => { changed(); setPax(value); }} />
-      </div>
+      {onRegister ? <>{paxField}{phoneField}</> : <>{phoneField}{paxField}</>}
       <Button
         type="submit"
         disabled={busy || !name.trim()}
@@ -113,12 +121,12 @@ export function QueueForm({
         )}
         {busy ? "Menyimpan…" : onRegister ? "Ambil nomor antrean" : "Tambah antrean"}
       </Button>
-      <div className="col-span-full flex flex-wrap items-center justify-between gap-2 text-xs text-slate-500">
+      {!onRegister && <div className="col-span-full flex flex-wrap items-center justify-between gap-2 text-xs text-slate-500">
         <span>Kelompok antrean: <GroupBadge group={groupFor(Number(pax))} /></span>
-        <span>{onRegister ? "Nomor ini dapat digunakan staf untuk menghubungi Anda terkait giliran antrean. Pengisian bersifat opsional." : "Minta persetujuan tamu sebelum menghubungi melalui WhatsApp."}</span>
-      </div>
+        <span>Minta persetujuan tamu sebelum menghubungi melalui WhatsApp.</span>
+      </div>}
       {error && (
-        <p role="alert" className="text-sm text-red-700 md:col-span-full">
+        <p role="alert" className={onRegister ? 'text-sm text-red-700' : 'text-sm text-red-700 md:col-span-full'}>
           {error}
         </p>
       )}
