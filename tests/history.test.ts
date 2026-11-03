@@ -37,9 +37,11 @@ test("CSV preserves names and escapes commas, quotes, newlines and formulas", ()
   assert.equal(csvCell('Budi, "A"'), '"Budi, ""A"""');
   assert.equal(csvCell('=HYPERLINK("evil")'), '"\'=HYPERLINK(""evil"")"');
   assert.ok(csvCell(" @SUM(1)").startsWith('"\''));
-  const csv = historyCsv([entry({ status: "no-show", customer_name: "Tamu\nBaru" })]);
+  const csv = historyCsv([entry({ status: "no-show", customer_name: "Tamu\nBaru", edit_count: 2, last_edited_at: "2026-10-15T04:00:00Z" })]);
   assert.ok(csv.startsWith("\uFEFF"));
   assert.ok(csv.includes('"Dilewati"'));
   assert.ok(csv.includes('"Tamu\nBaru"'));
   assert.ok(csv.includes("(ISO UTC)"));
+  assert.ok(csv.includes("Jumlah pemulihan"));
+  assert.ok(csv.includes('"2","2026-10-15T04:00:00Z"'));
 });

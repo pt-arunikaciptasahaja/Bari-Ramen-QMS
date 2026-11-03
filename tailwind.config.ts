@@ -3,7 +3,7 @@ export default {
   content: ["./src/**/*.{ts,tsx}"],
   theme: {
     extend: {
-      colors: { ink: "#0f172a", paper: "#f8fafc", brand: "#0f172a" },
+      colors: { ink: "#1d2848", paper: "#ffffff", brand: "#1d2848", cobalt: "#2d3ee9", "brand-soft": "#f2f5ff" },
     },
   },
   plugins: [],

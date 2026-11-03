@@ -8,15 +8,17 @@ import { Button } from "./ui/button";
 import { Card } from "./ui/card";
 import { Table, TableCell, TableHead } from "./ui/table";
 import { GroupBadge } from "./group-badge";
+import { QueueEditBadge, QueueRecoveryAction } from "./queue-recovery";
 import { queueGroups } from "@/lib/groups";
 
 const PAGE_SIZE = 20;
 const timeFormat = new Intl.DateTimeFormat("id-ID", { timeZone: "Asia/Jakarta", hour: "2-digit", minute: "2-digit", hourCycle: "h23" });
 function time(value: string | null) { return value ? timeFormat.format(new Date(value)) : "-"; }
 
-export function QueueHistory({ todayRows, todayLoading, todayError }: {
-  todayRows: QueueEntry[]; todayLoading: boolean; todayError: string;
+export function QueueHistory({ todayRows, todayLoading, todayError, onChanged }: {
+  todayRows: QueueEntry[]; todayLoading: boolean; todayError: string; onChanged:()=>void|Promise<void>;
 }) {
+  const [recoveryMessage,setRecoveryMessage] = useState("");
   const today = serviceDate();
   const [date, setDate] = useState(today);
   const [status, setStatus] = useState<HistoryStatus>("all");
@@ -50,7 +52,7 @@ export function QueueHistory({ todayRows, todayLoading, todayError }: {
         </div>
         <div className="flex flex-wrap items-end gap-3">
           <div>
-            <label htmlFor="history-date" className="mb-1 block text-xs font-semibold">Tanggal antrean</label>
+            <label htmlFor="history-date" className="mb-1 block text-xs font-semibold">Tanggal pendaftaran</label>
             <input id="history-date" type="date" value={date} max={today} required
               onChange={(e) => { const day = e.target.value; if (/^\d{4}-\d{2}-\d{2}$/.test(day) && day <= today) { setDate(day); setPage(0); } }}
               className="min-h-12 rounded-md border border-slate-200 bg-white px-3 font-mono text-sm tabular-nums" />
@@ -58,11 +60,12 @@ export function QueueHistory({ todayRows, todayLoading, todayError }: {
           <Button variant="outline" disabled={unavailable || !history.length} onClick={exportCsv}><Download size={16} />Unduh CSV</Button>
         </div>
       </div>
+      {recoveryMessage && <p role="status" className="mb-3 rounded-lg bg-emerald-50 p-3 text-sm text-emerald-900">{recoveryMessage}</p>}
       {error && <p role="alert" className="mb-3 text-sm text-rose-700">Rekap belum dapat dimuat. {error}</p>}
       <div className="mb-3 grid grid-cols-2 gap-2 lg:grid-cols-5" aria-busy={loading}>
         {[
-          ["Total pendaftaran", summary.total], ["Sudah mendapat meja", summary.seated],
-          ["Orang mendapat meja", summary.seatedPax], ["Dilewati", summary.noShow],
+          ["Total pendaftaran", summary.total], ["Rombongan mendapat meja", summary.seated],
+          ["Jumlah tamu mendapat meja", summary.seatedPax], ["Dilewati", summary.noShow],
           ["Rata-rata tunggu (menit)", summary.averageWaitMinutes ?? "-"],
         ].map(([label, value]) => <div key={label} className="rounded-lg bg-slate-100/70 px-4 py-3">
           <p className="text-xs text-slate-500">{label}</p>
@@ -70,13 +73,13 @@ export function QueueHistory({ todayRows, todayLoading, todayError }: {
         </div>)}
       </div>
       <p className="mb-4 text-xs leading-5 text-slate-500">
-        Rekap berdasarkan tanggal pendaftaran (WIB), termasuk antrean aktif. Waktu tunggu dihitung dari daftar sampai dipanggil, hanya untuk tiket yang pernah dipanggil.
-        {!unavailable && <> QR Online: <span className="font-mono tabular-nums">{summary.online}</span>. Walk-in: <span className="font-mono tabular-nums">{summary.walkIn}</span>.</>}
+        Rekap berdasarkan tanggal pendaftaran (WIB), termasuk antrean aktif. Waktu tunggu dihitung dari pendaftaran hingga panggilan pertama dalam siklus aktif terakhir.
+        {!unavailable && <> Daftar mandiri: <span className="font-mono tabular-nums">{summary.online}</span>. Didaftarkan staf: <span className="font-mono tabular-nums">{summary.walkIn}</span>.</>}
       </p>
       <Card className="overflow-hidden">
         <div className="flex flex-wrap items-center justify-between gap-3 p-4">
           <div className="flex flex-wrap gap-1" role="group" aria-label="Filter status riwayat">
-            {([["all", "Semua riwayat"], ["seated", "Selesai"], ["no-show", "Dilewati"]] as const).map(([value, label]) =>
+            {([["all", "Semua riwayat"], ["seated", "Meja diberikan"], ["no-show", "Dilewati"]] as const).map(([value, label]) =>
               <button key={value} aria-pressed={status === value} onClick={() => { setStatus(value); setPage(0); }}
                 className={`min-h-11 rounded-md px-3 text-sm font-medium transition-colors duration-75 ${status === value ? "bg-slate-900 text-white" : "text-slate-600 hover:bg-slate-100"}`}>{label}</button>)}
           </div>
@@ -84,21 +87,22 @@ export function QueueHistory({ todayRows, todayLoading, todayError }: {
             onChange={(e) => { setSearch(e.target.value); setPage(0); }} className="min-h-11 rounded-md border border-slate-200 px-3 text-sm" />
         </div>
         <Table>
-          <thead className="bg-slate-50"><tr>{["Nomor", "Nama Tamu", "Telepon / WhatsApp", "Jumlah", "Asal", "Daftar (WIB)", "Dipanggil (WIB)", "Status"].map((label) => <TableHead key={label}>{label}</TableHead>)}</tr></thead>
+          <thead className="bg-slate-50"><tr>{["Nomor", "Nama tamu", "Telepon / WhatsApp", "Jumlah orang", "Pendaftaran", "Daftar (WIB)", "Panggilan pertama (WIB)", "Status", "Tindakan"].map((label) => <TableHead key={label}>{label}</TableHead>)}</tr></thead>
           <tbody>{!unavailable && visible.map((entry) => <tr key={entry.id} className="border-t border-slate-100 hover:bg-slate-50">
-            <TableCell className="whitespace-nowrap font-mono font-semibold tabular-nums"><span className={`rounded-md px-2 py-1 ${queueGroups[entry.group_code].light}`}>{entry.queue_number}</span></TableCell>
+            <TableCell className="whitespace-nowrap font-mono font-semibold tabular-nums"><span className={`rounded-md px-2 py-1 ${queueGroups[entry.group_code].light}`}>{entry.queue_number}</span><QueueEditBadge entry={entry}/></TableCell>
             <TableCell className="min-w-36 font-medium">{entry.customer_name}</TableCell>
             <TableCell className="whitespace-nowrap font-mono text-xs tabular-nums text-slate-500">{entry.customer_phone || "-"}</TableCell>
             <TableCell><GroupBadge group={entry.group_code} pax={entry.pax} /></TableCell>
-            <TableCell className="whitespace-nowrap text-slate-500">{entry.source === "online" ? "QR Online" : "Walk-in"}</TableCell>
+            <TableCell className="whitespace-nowrap text-slate-500">{entry.source === "online" ? "Daftar mandiri" : "Didaftarkan staf"}</TableCell>
             <TableCell className="font-mono tabular-nums">{time(entry.created_at)}</TableCell>
             <TableCell className="font-mono tabular-nums">{time(entry.called_at)}</TableCell>
             <TableCell><span className={`whitespace-nowrap rounded-md px-2 py-1 text-xs font-semibold ${entry.status === "seated" ? "bg-emerald-50 text-emerald-700" : "bg-rose-50 text-rose-700"}`}>{entry.status === "seated" ? "Meja diberikan" : "Dilewati"}</span></TableCell>
+            <TableCell><QueueRecoveryAction entry={entry} disabled={unavailable} onChanged={async restored=>{setRecoveryMessage(restored.status==='waiting' ? `${restored.queue_number} kembali ke daftar menunggu. ID dan nomor antrean tetap sama. Riwayat perubahan disimpan.` : `Pemulihan ${restored.queue_number} sudah diproses sebelumnya. Periksa status terbaru.`);await onChanged();}}/></TableCell>
           </tr>)}</tbody>
         </Table>
-        {(unavailable || !history.length) && <p role="status" className="px-5 py-8 text-center text-sm text-slate-500">{loading ? "Memuat riwayat..." : error ? "Riwayat belum tersedia. Coba lagi setelah koneksi pulih." : "Belum ada riwayat yang sesuai filter."}</p>}
+        {(unavailable || !history.length) && <p role="status" className="px-5 py-8 text-center text-sm text-slate-500">{loading ? "Memuat riwayat…" : error ? "Riwayat belum tersedia. Coba lagi setelah koneksi pulih." : "Belum ada riwayat yang sesuai filter."}</p>}
         <div className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 px-4 py-3 text-xs text-slate-500">
-          <span><span className="font-mono tabular-nums">{unavailable ? "-" : history.length}</span> hasil. CSV mengikuti tanggal, status, dan pencarian. Selesai berarti meja diberikan, bukan transaksi lunas.</span>
+          <span><span className="font-mono tabular-nums">{unavailable ? "-" : history.length}</span> hasil. CSV mengikuti tanggal, status, dan pencarian. Status Meja diberikan mencatat pemberian meja kepada tamu.</span>
           <div className="flex items-center gap-2">
             <Button variant="ghost" className="min-h-10 px-2 text-xs" disabled={unavailable || currentPage === 0} onClick={() => setPage(currentPage - 1)}>Sebelumnya</Button>
             <span className="whitespace-nowrap font-mono tabular-nums">{currentPage + 1} / {lastPage + 1}</span>

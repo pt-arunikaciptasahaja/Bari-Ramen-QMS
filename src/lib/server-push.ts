@@ -2,7 +2,7 @@ import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import webpush from 'web-push';
 import { validatePushSubscription, type StoredPushSubscription } from './push-validation';
 
-export type PushJob = { id: string; subscription: StoredPushSubscription; token: string; queue_number: string; ticket_id: string };
+export type PushJob = { id: string; subscription: StoredPushSubscription; token: string; queue_number: string; ticket_id: string; call_count?: number; lease_token?: string };
 export function pushConfigured() {
   return Boolean(process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY);
 }
@@ -28,10 +28,10 @@ export async function sendDevicePush(job: PushJob, test = false) {
   if (!pushConfigured()) throw new Error('Notifikasi belum tersedia.');
   const subscription = validatePushSubscription(job.subscription);
   return webpush.sendNotification(subscription, JSON.stringify({
-    title: test ? 'Notifikasi Bari Ramen aktif' : 'Giliran Anda di Bari Ramen',
-    body: test ? 'Ini notifikasi uji. Kami akan memberi tahu saat nomor antrean Anda dipanggil.' : `Nomor ${job.queue_number} sudah dipanggil. Silakan kembali ke kasir dan tunjukkan tiket Anda.`,
-    url: `/ticket#t=${job.token}`, tag: `bari-${job.ticket_id}`, expiresAt: Date.now() + 60000,
-  }), { TTL: 60, urgency: 'high', timeout: 5000, topic: `q${job.ticket_id.replaceAll('-', '').slice(0, 20)}`,
+    title: test ? 'Notifikasi Bari Ramen aktif' : 'Bari Ramen is calling! Thank you for patiently waiting.',
+    body: test ? 'Ini notifikasi uji. Kami akan memberi tahu saat nomor antrean Anda dipanggil.' : `No. ${job.queue_number} Silahkan datang dan pesan makanan di kasir.`,
+    url: `/ticket#t=${job.token}`, tag: `bari-${job.ticket_id}-${job.call_count ?? 1}`, expiresAt: Date.now() + 60000,
+  }), { TTL: 60, urgency: 'high', timeout: 5000, topic: `q${job.ticket_id.replaceAll('-', '').slice(0, 20)}c${job.call_count ?? 1}`,
     vapidDetails: { subject: 'https://bari-ramen-qms.vercel.app', publicKey: process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!, privateKey: process.env.VAPID_PRIVATE_KEY! } });
 }
 export async function dispatchTicketPush(db: SupabaseClient, id: string) {
@@ -46,7 +46,10 @@ export async function dispatchTicketPush(db: SupabaseClient, id: string) {
       status = typeof error === 'object' && error && 'statusCode' in error ? Number(error.statusCode) : 0;
       result = status === 404 || status === 410 ? 'dead' : 'failed';
     }
-    await db.rpc('finish_push_job', { p_job: job.id, p_result: result, p_provider_status: status });
+    const { error: ackError } = job.lease_token
+      ? await db.rpc('staff_finish_call_push', { p_job: job.id, p_lease: job.lease_token, p_result: result, p_provider_status: status })
+      : await db.rpc('finish_push_job', { p_job: job.id, p_result: result, p_provider_status: status });
+    if (ackError) return false;
     return result === 'accepted';
   }));
   return { accepted: results.filter(Boolean).length, failed: results.filter(result => !result).length, configured: true };

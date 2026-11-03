@@ -7,6 +7,10 @@ export type QueueEntry = {
   customer_phone?: string | null;
   ticket_opened_at?: string | null;
   ticket_skipped_at?: string | null;
+  edit_count?: number;
+  last_edited_at?: string | null;
+  call_count?: number;
+  last_call_at?: string | null;
   push_status?: 'pending' | 'accepted' | 'failed' | null;
   pax: number;
   source: QueueSource;
@@ -18,7 +22,7 @@ export type QueueEntry = {
   group_code: "A" | "B" | "C";
   request_id: string;
 };
-export type BoardEntry = Omit<QueueEntry, "customer_name" | "customer_phone" | "request_id" | "ticket_opened_at" | "ticket_skipped_at" | "push_status">;
+export type BoardEntry = Omit<QueueEntry, "customer_name" | "customer_phone" | "request_id" | "ticket_opened_at" | "ticket_skipped_at" | "push_status" | "edit_count" | "last_edited_at">;
 export const statusLabel: Record<QueueStatus, string> = {
   waiting: "Menunggu",
   called: "Silakan ke kasir",
@@ -38,10 +42,10 @@ export function groupFor(pax: number): "A" | "B" | "C" {
 }
 export function validateGuest(name: string, pax: number) {
   if (!name.trim() || name.trim().length > 60)
-    throw new Error("Nama Tamu wajib diisi, maksimal 60 karakter.");
+    throw new Error("Nama wajib diisi, maksimal 60 karakter.");
   if (!Number.isInteger(pax) || pax < 1 || pax > 12)
     throw new Error(
-      "Jumlah Orang harus 1 sampai 12. Untuk rombongan lebih besar, hubungi staf.",
+      "Jumlah orang harus 1 sampai 12. Untuk rombongan lebih besar, hubungi staf.",
     );
 }
 export function activeQueue<T extends BoardEntry>(

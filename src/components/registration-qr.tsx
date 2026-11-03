@@ -8,8 +8,8 @@ export function RegistrationQr({ poster = false }: { poster?: boolean }) {
   const [message, setMessage] = useState('');
   useEffect(() => { setUrl(`${window.location.origin}/register`); }, []);
   return <section aria-labelledby="registration-qr-title" className={`rounded-xl bg-white p-5 ${poster ? 'text-center' : 'mb-5 border border-slate-200'}`}>
-    <h2 id="registration-qr-title" className={poster ? 'text-3xl font-bold' : 'font-semibold'}>Scan untuk daftar antrean</h2>
-    <p className="mt-2 text-sm leading-6 text-slate-600">Isi nama dan jumlah orang di HP Anda. Tiket langsung terbuka setelah mendaftar.</p>
+    <h2 id="registration-qr-title" className={poster ? 'text-3xl font-bold' : 'font-semibold'}>Pindai kode QR untuk daftar antrean</h2>
+    <p className="mt-2 text-sm leading-6 text-slate-600">Isi nama dan jumlah orang di HP Anda. Tiket antrean akan terbuka setelah pendaftaran berhasil.</p>
     <div className={`mt-4 flex flex-wrap items-center gap-5 ${poster ? 'justify-center' : ''}`}>
       {url ? <QRCodeSVG value={url} size={poster ? 300 : 160} marginSize={4} level="M" title="QR pendaftaran antrean Bari Ramen" style={{ maxWidth: '100%', height: 'auto' }} /> : <p role="status">Menyiapkan QR…</p>}
       <div className="min-w-0 text-sm">
