@@ -11,7 +11,10 @@ export async function GET(request: Request) {
     const {slides} = await driveSnapshot();
     const slide = slides.find(slide=>slide.id===id);
     if (!slide) return new Response(null,{status:404,headers:{'Cache-Control':'no-store'}});
-    const bytes = Buffer.from(await slideImage(slide),'base64');
-    return new Response(bytes,{headers:{'Content-Type':'image/webp','Cache-Control':'private, max-age=60','X-Content-Type-Options':'nosniff'}});
+    const image = await slideImage(slide, request.headers.get('if-none-match'));
+    if (image.body === null)
+      return new Response(null,{status:304,headers:{ETag:image.etag,'Cache-Control':'private, no-store'}});
+    const bytes = Buffer.from(image.body,'base64');
+    return new Response(bytes,{headers:{ETag:image.etag,'Content-Type':'image/webp','Cache-Control':'private, no-store','X-Content-Type-Options':'nosniff'}});
   } catch { return new Response(null,{status:503,headers:{'Cache-Control':'no-store'}}); }
 }
