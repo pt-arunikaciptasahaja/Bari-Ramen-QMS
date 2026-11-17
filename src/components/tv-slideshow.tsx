@@ -15,10 +15,13 @@ async function mediaFetch(url: string, signal: AbortSignal, etag?: string) {
     if (error || !data.session) throw new Error('Sesi staf berakhir');
     headers.Authorization = `Bearer ${data.session.access_token}`;
   }
+  signal.throwIfAborted();
+  if (document.visibilityState === 'hidden') throw new DOMException('TV hidden', 'AbortError');
   if (etag) headers['If-None-Match'] = etag;
   return fetch(url,{headers,signal,cache:'no-store'});
 }
 export function TVSlideshow() {
+  const [pageVisible,setPageVisible] = useState(false);
   const [slides,setSlides] = useState<Slide[]>([]);
   const [active,setActive] = useState('');
   const [freshAt,setFreshAt] = useState(0);
@@ -35,27 +38,33 @@ export function TVSlideshow() {
   const [listIssue,setListIssue] = useState('');
   const [imageIssue,setImageIssue] = useState('');
   useEffect(() => {
+    const update = () => setPageVisible(document.visibilityState === 'visible');
+    update(); document.addEventListener('visibilitychange', update);
+    return () => document.removeEventListener('visibilitychange', update);
+  }, []);
+  useEffect(() => {
     if (isDemo) return;
     const {data} = supabase().auth.onAuthStateChange((event) => {
       if (event === 'SIGNED_OUT') {
-        imageCache.current.clear(); setSlides([]); setFreshAt(0);
+        imageCache.current.clear(); frameRef.current=null; setSlides([]); setFreshAt(0);
         setFrame(null); setPreviousFrame(null);
       }
     });
     return () => data.subscription.unsubscribe();
   }, []);
   useEffect(() => {
+    if (!pageVisible) return;
     let alive = true, busy = false;
     let request: AbortController | null = null;
     const refresh = async () => {
-      if (!alive || busy) return;
+      if (!alive || busy || document.visibilityState !== 'visible') return;
       busy = true; request = new AbortController(); setListAttempt(Date.now());
       const timeout = setTimeout(()=>request?.abort(),20000);
       try {
         const response = await mediaFetch(`/api/tv/slides?t=${Math.floor(Date.now()/60000)}`,request.signal);
         if (!response.ok) {
           if (response.status === 401 || response.status === 403) {
-            imageCache.current.clear();
+            imageCache.current.clear(); frameRef.current=null;
             if (alive) { setSlides([]); setFreshAt(0); setFrame(null); setPreviousFrame(null); }
           }
           throw new Error(`list-http-${response.status}`);
@@ -73,22 +82,24 @@ export function TVSlideshow() {
       }
       finally { clearTimeout(timeout); busy = false; }
     };
-    const visible = () => { if (document.visibilityState==='visible') void refresh(); };
     void refresh();
     const interval = setInterval(()=>void refresh(),60000);
-    window.addEventListener('online',refresh); document.addEventListener('visibilitychange',visible);
-    return () => { alive=false; clearInterval(interval); request?.abort(); window.removeEventListener('online',refresh); document.removeEventListener('visibilitychange',visible); };
-  },[]);
+    window.addEventListener('online',refresh);
+    return () => { alive=false; clearInterval(interval); request?.abort(); window.removeEventListener('online',refresh); };
+  },[pageVisible]);
   useEffect(() => {
+    if (!pageVisible) return;
     const timer = setInterval(()=>{
+      if (document.visibilityState !== 'visible') return;
       setNow(Date.now());
       if (canAdvanceSlide(loadingImage.current,shownAt.current,Date.now())) setActive(previous=>nextSlideId(slides,previous));
     },10000);
     return ()=>clearInterval(timer);
-  },[slides]);
+  },[slides,pageVisible]);
   const selected = slides.find(slide=>slide.id===active) ?? slides[0];
   useEffect(() => {
-    if (!selected) return;
+    if (!selected || !pageVisible || Date.now()-freshAt>120000) return;
+    if (frameRef.current?.id === selected.id && frameRef.current.version === selected.version) return;
     let alive = true, localUrl = '';
     loadingImage.current=true;
     const request = new AbortController();
@@ -130,7 +141,7 @@ export function TVSlideshow() {
       finally { clearTimeout(timeout); if (alive) loadingImage.current=false; }
     })();
     return ()=>{ alive=false; loadingImage.current=false; clearTimeout(timeout); request.abort(); };
-  },[selected?.id,selected?.version]);
+  },[selected?.id,selected?.version,pageVisible,freshAt]);
   useEffect(()=>()=>{ imageCache.current.clear(); if (retirement.current) clearTimeout(retirement.current); for (const url of objectUrls.current) URL.revokeObjectURL(url); objectUrls.current.clear(); },[]);
   const visible = frame && now-freshAt<=120000 && slides.some(slide=>slide.id===frame.id && (slide.version===frame.version || now-frame.loadedAt<=120000));
   return <figure className="tv-menu-feature tv-slideshow" aria-label="Bari Ramen promotions" data-slide-updated-at={freshAt} data-slide-count={slides.length} data-slide-frame={frame?.id ?? ""} data-slide-loaded-at={frame?.loadedAt ?? 0} data-slide-visible={Boolean(visible)} data-list-attempt={listAttempt} data-list-error={listIssue} data-image-error={imageIssue}>
