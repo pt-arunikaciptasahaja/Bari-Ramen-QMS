@@ -3,17 +3,19 @@ import { useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
 import { isDemo, supabase } from '@/lib/supabase';
 import { canAdvanceSlide, nextSlideId } from '@/lib/slideshow';
+import { SlideCache } from '@/lib/slide-cache';
 import type { DriveSlide } from '@/lib/drive-slides';
 
 type Slide = Pick<DriveSlide,'id'|'name'|'version'>;
 type Frame = Slide & {src:string;loadedAt:number};
-async function mediaFetch(url: string, signal: AbortSignal) {
+async function mediaFetch(url: string, signal: AbortSignal, etag?: string) {
   const headers: Record<string,string> = {};
   if (!isDemo) {
     const {data,error} = await supabase().auth.getSession();
     if (error || !data.session) throw new Error('Sesi staf berakhir');
     headers.Authorization = `Bearer ${data.session.access_token}`;
   }
+  if (etag) headers['If-None-Match'] = etag;
   return fetch(url,{headers,signal,cache:'no-store'});
 }
 export function TVSlideshow() {
@@ -24,6 +26,7 @@ export function TVSlideshow() {
   const [frame,setFrame] = useState<Frame|null>(null);
   const [previousFrame,setPreviousFrame] = useState<Frame|null>(null);
   const frameRef = useRef<Frame|null>(null);
+  const imageCache = useRef(new SlideCache());
   const objectUrls = useRef(new Set<string>());
   const retirement = useRef<ReturnType<typeof setTimeout>|null>(null);
   const loadingImage = useRef(false);
@@ -31,6 +34,16 @@ export function TVSlideshow() {
   const [listAttempt,setListAttempt] = useState(0);
   const [listIssue,setListIssue] = useState('');
   const [imageIssue,setImageIssue] = useState('');
+  useEffect(() => {
+    if (isDemo) return;
+    const {data} = supabase().auth.onAuthStateChange((event) => {
+      if (event === 'SIGNED_OUT') {
+        imageCache.current.clear(); setSlides([]); setFreshAt(0);
+        setFrame(null); setPreviousFrame(null);
+      }
+    });
+    return () => data.subscription.unsubscribe();
+  }, []);
   useEffect(() => {
     let alive = true, busy = false;
     let request: AbortController | null = null;
@@ -40,11 +53,18 @@ export function TVSlideshow() {
       const timeout = setTimeout(()=>request?.abort(),20000);
       try {
         const response = await mediaFetch(`/api/tv/slides?t=${Math.floor(Date.now()/60000)}`,request.signal);
-        if (!response.ok) throw new Error(`list-http-${response.status}`);
+        if (!response.ok) {
+          if (response.status === 401 || response.status === 403) {
+            imageCache.current.clear();
+            if (alive) { setSlides([]); setFreshAt(0); setFrame(null); setPreviousFrame(null); }
+          }
+          throw new Error(`list-http-${response.status}`);
+        }
         const data = await response.json();
         if (!Array.isArray(data.slides) || typeof data.checkedAt!=='number' || data.checkedAt>Date.now()+60000 || Date.now()-data.checkedAt>120000) throw new Error('list-expired');
         const next: Slide[] = data.slides.filter((slide: Slide)=>typeof slide.id==='string' && typeof slide.name==='string' && typeof slide.version==='string');
         if (alive) {
+          imageCache.current.retain(new Set(next.map(slide=>slide.id)));
           setSlides(next); setFreshAt(data.checkedAt); setNow(Date.now()); setListIssue('');
           setActive(previous=>next.some(slide=>slide.id===previous) ? previous : next[0]?.id ?? '');
         }
@@ -75,10 +95,21 @@ export function TVSlideshow() {
     const timeout = setTimeout(()=>request.abort(),25000);
     void (async () => {
       try {
-        const response = await mediaFetch(`/api/tv/slides/image?id=${encodeURIComponent(selected.id)}&v=${encodeURIComponent(selected.version)}`,request.signal);
-        if (!response.ok) throw new Error(`image-http-${response.status}`);
-        if (response.headers.get('content-type')!=='image/webp') throw new Error('image-type');
-        localUrl = URL.createObjectURL(await response.blob()); objectUrls.current.add(localUrl);
+        let cached = imageCache.current.get(selected.id);
+        if (!cached || cached.version !== selected.version) {
+          const response = await mediaFetch(`/api/tv/slides/image?id=${encodeURIComponent(selected.id)}&v=${encodeURIComponent(selected.version)}`,request.signal,cached?.etag);
+          if (!alive) return;
+          if (response.status === 304 && cached) {
+            cached = {...cached,version:selected.version};
+          } else {
+            if (!response.ok) throw new Error(`image-http-${response.status}`);
+            if (response.headers.get('content-type')!=='image/webp') throw new Error('image-type');
+            cached = {version:selected.version,etag:response.headers.get('etag') ?? '',blob:await response.blob()};
+          }
+          if (!alive) return;
+          imageCache.current.set(selected.id,cached);
+        }
+        localUrl = URL.createObjectURL(cached.blob); objectUrls.current.add(localUrl);
         const image = new window.Image(); image.src = localUrl; await image.decode();
         if (!alive) { URL.revokeObjectURL(localUrl); objectUrls.current.delete(localUrl); return; }
         const old = frameRef.current;
@@ -100,7 +131,7 @@ export function TVSlideshow() {
     })();
     return ()=>{ alive=false; loadingImage.current=false; clearTimeout(timeout); request.abort(); };
   },[selected?.id,selected?.version]);
-  useEffect(()=>()=>{ if (retirement.current) clearTimeout(retirement.current); for (const url of objectUrls.current) URL.revokeObjectURL(url); objectUrls.current.clear(); },[]);
+  useEffect(()=>()=>{ imageCache.current.clear(); if (retirement.current) clearTimeout(retirement.current); for (const url of objectUrls.current) URL.revokeObjectURL(url); objectUrls.current.clear(); },[]);
   const visible = frame && now-freshAt<=120000 && slides.some(slide=>slide.id===frame.id && (slide.version===frame.version || now-frame.loadedAt<=120000));
   return <figure className="tv-menu-feature tv-slideshow" aria-label="Bari Ramen promotions" data-slide-updated-at={freshAt} data-slide-count={slides.length} data-slide-frame={frame?.id ?? ""} data-slide-loaded-at={frame?.loadedAt ?? 0} data-slide-visible={Boolean(visible)} data-list-attempt={listAttempt} data-list-error={listIssue} data-image-error={imageIssue}>
     {visible ? <>
