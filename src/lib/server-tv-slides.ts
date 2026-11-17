@@ -1,5 +1,6 @@
 import { unstable_cache } from 'next/cache';
 import sharp from 'sharp';
+import { createHash } from 'node:crypto';
 import { serverDb } from './server-push';
 import { isDemo } from './supabase';
 import { loadDriveSlides, loadDriveImage, createSlideCatalog, type DriveSlide } from './drive-slides';
@@ -20,11 +21,24 @@ export async function tvMediaAccess(request: Request): Promise<Response | null> 
 }
 const snapshot = createSlideCatalog(loadDriveSlides);
 export function driveSnapshot() { return snapshot(); }
-export function slideImage(slide: DriveSlide) {
+export async function slideImage(slide: DriveSlide, previousEtag: string | null = null) {
+  // Real revisions share work across displays. The HTML adapter's minute token
+  // still checks for replacements, but unchanged bytes never need re-encoding.
+  let source: Buffer | undefined;
+  const digest = await unstable_cache(async () => {
+    source = await loadDriveImage(slide);
+    return createHash('sha256').update(source).digest('hex');
+  },['bari-tv-source-digest-v2',slide.id,slide.version],{revalidate:86400})();
+  const etag = `"${digest}"`;
+  // Return before reading the larger encoded-image cache for an unchanged TV.
+  if (previousEtag === etag) return {body:null,etag};
   return unstable_cache(async () => {
-    const body = await loadDriveImage(slide);
+    const body = source ?? await loadDriveImage(slide);
+    // A replaced file must not be saved under an earlier revision's key.
+    if (createHash('sha256').update(body).digest('hex') !== digest)
+      throw new Error('Media changed during refresh');
     const image = await sharp(body,{limitInputPixels:25_000_000}).rotate()
       .resize({width:1200,height:1200,fit:'inside',withoutEnlargement:true}).webp({quality:82}).toBuffer();
-    return image.toString('base64');
-  },['bari-tv-slide',slide.id,slide.version],{revalidate:60})();
+    return {body:image.toString('base64'), etag:`"${digest}"`};
+  },['bari-tv-webp-v2',digest],{revalidate:86400})();
 }
