@@ -1,6 +1,7 @@
 import { unstable_cache } from 'next/cache';
 import sharp from 'sharp';
 import { createHash } from 'node:crypto';
+import { singleFlight } from './single-flight';
 import { serverDb } from './server-push';
 import { isDemo } from './supabase';
 import { loadDriveSlides, loadDriveImage, createSlideCatalog, type DriveSlide } from './drive-slides';
@@ -21,7 +22,12 @@ export async function tvMediaAccess(request: Request): Promise<Response | null> 
 }
 const snapshot = createSlideCatalog(loadDriveSlides);
 export function driveSnapshot() { return snapshot(); }
-export async function slideImage(slide: DriveSlide, previousEtag: string | null = null) {
+// Authentication and current folder membership remain per-request in the route.
+// Simultaneous TVs on one instance share downloads/cache misses, never auth.
+export const slideImage = singleFlight(
+  (slide: DriveSlide, previousEtag: string | null = null) =>
+    JSON.stringify([slide.id, slide.version, slide.resourceKey, previousEtag]),
+  async (slide: DriveSlide, previousEtag: string | null = null) => {
   // Real revisions share work across displays. The HTML adapter's minute token
   // still checks for replacements, but unchanged bytes never need re-encoding.
   let source: Buffer | undefined;
@@ -41,4 +47,4 @@ export async function slideImage(slide: DriveSlide, previousEtag: string | null 
       .resize({width:1200,height:1200,fit:'inside',withoutEnlargement:true}).webp({quality:82}).toBuffer();
     return {body:image.toString('base64'), etag:`"${digest}"`};
   },['bari-tv-webp-v2',digest],{revalidate:86400})();
-}
+});
