@@ -25,3 +25,13 @@ Only Google thumbnail redirects on allowlisted HTTPS Google media hosts are foll
 ## Verification
 
 Tests cover public additions/deletions, natural order, unsupported files, parser failures, pagination and revisions, credential exclusion, oversized streams, hostile redirects and unauthorized Production route access. Live read-only verification lists the 12 source images and retrieves/optimizes an actual image. No files in the user's Drive were added, deleted or edited by these checks. Preview browser verification uses demo queue data; Production anonymous API requests must return 401.
+
+## Usage optimization
+
+The TV keeps up to 32 MiB of image blobs in session memory. Rotations reuse images by ID and revision; successful catalogue refreshes evict deleted IDs. Sign-out, denied catalogue access and unmount clear the cache. Blob URLs remain limited to the displayed and outgoing frames.
+
+The existing Drive API mode uses checksums/modified times, so unchanged files do not trigger image requests after warmup. Without a server-only Drive API key, the HTML adapter still checks each minute for replacements. Image requests then send the previous ETag: unchanged content returns 304 without an image body. This fallback still incurs authenticated function invocations and upstream image reads; enabling Drive API metadata is the preferred next optimization.
+
+Server caches store a small source-content digest per source revision and WebP bytes under that digest for 24 hours. Identical source content reuses the same encoded image across minute-based fallback versions, reducing Sharp processing and duplicated Data Cache image writes. These are expiring caches, not permanent storage: cold or evicted caches can repeat work. Images remain behind staff authorization and current-folder membership checks, including conditional requests. No shared HTTP/CDN caching is enabled for authenticated responses. Folder freshness and the existing two-minute outage fallback remain unchanged.
+
+Hidden TV tabs now stop catalogue polling and rotation timers, cancel pending catalogue/image requests, and resume with a fresh folder check when visible. No new media fetch starts while document visibility is hidden, including after an asynchronous session lookup. Existing image blobs remain bounded in memory for reuse on return.
